@@ -96,7 +96,7 @@ class ARPPUModel(BaseABModel):
 
             delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
                                            B_arppu - A_arppu)
-            delta_std = pm.Deterministic('$\Delta_{ARPPU} std$',
+            delta_std = pm.Deterministic('$\Delta_{std}$',
                                          np.sqrt(B_arppu_var) - np.sqrt(A_arppu_var))
             effect_size = pm.Deterministic(
                 'effect size',
@@ -105,7 +105,7 @@ class ARPPUModel(BaseABModel):
 
     def plot_deltas(self, burn_in):
         return super(ARPUModel, self).plot_result(
-            ['$\Delta_{ARPPU}$', '$\Delta_{std} ARPPU$', 'effect size'],
+            ['$\Delta_{ARPPU}$', '$\Delta_{std}$', 'effect size'],
             burn_in, ref_val=0
         )
 
@@ -205,7 +205,7 @@ class ARPUModel(BaseABModel):
 
             delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
                                            B_arppu - A_arppu)
-            delta_std = pm.Deterministic('$\Delta_{ARPPU} std$',
+            delta_std = pm.Deterministic('$\Delta_{std}$',
                                          np.sqrt(B_arppu_var) - np.sqrt(A_arppu_var))
             effect_size = pm.Deterministic(
                 'effect size',
@@ -216,7 +216,7 @@ class ARPUModel(BaseABModel):
         return super(ARPUModel, self).plot_result(
             [
              '$\Delta_C$', '$\Delta_{ARPPU}$', '$\Delta_{ARPU}$',
-             'effect_size', '$\Delta_{ARPPU} std$'
+             'effect_size', '$\Delta_{std}$'
             ],
             burn_in, ref_val=0
         )
