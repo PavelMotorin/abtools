@@ -104,13 +104,13 @@ class ARPPUModel(BaseABModel):
             )
 
     def plot_deltas(self, burn_in):
-        return super(ARPUModel, self).plot_result(
+        return super(ARPPUModel, self).plot_result(
             ['$\Delta_{ARPPU}$', '$\Delta_{std}$', 'effect_size'],
             burn_in, ref_val=0
         )
 
     def plot_params(self, burn_in):
-        return super(ARPUModel, self).plot_result(
+        return super(ARPPUModel, self).plot_result(
             [
                 '$A_{ARPPU}$', '$A_{ARPPU}$'
             ],
