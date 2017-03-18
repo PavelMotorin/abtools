@@ -194,7 +194,7 @@ class ARPUModel(BaseABModel):
             A_arpu = pm.Deterministic('$A_{ARPU}$', A_arppu * conv_prob_a)
             B_arpu = pm.Deterministic('$B_{ARPU}$', B_arppu * conv_prob_b)
             # Difference between posterior expected values of model parameters
-            delta_conv = pm.Deterministic('$\Delta_{C}$',
+            delta_conv = pm.Deterministic('$\Delta_C$',
                                           conv_prob_b - conv_prob_a)
             delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
                                            B_arppu - A_arppu)
