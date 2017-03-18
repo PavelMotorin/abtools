@@ -203,8 +203,6 @@ class ARPUModel(BaseABModel):
             A_arppu_var = pm.Deterministic('$A_{ARPPU} var$', (A_arppu**3/lam_a))
             B_arppu_var = pm.Deterministic('$B_{ARPPU} var$', (B_arppu**3/lam_b))
 
-            delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
-                                           B_arppu - A_arppu)
             delta_std = pm.Deterministic('$\Delta_{std}$',
                                          np.sqrt(B_arppu_var) - np.sqrt(A_arppu_var))
             effect_size = pm.Deterministic(
