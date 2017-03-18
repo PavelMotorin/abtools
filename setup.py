@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
@@ -8,7 +8,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='sample',
+    name='abtools',
     version='0.0.1',
 
     description='Tools for A/B test results estimation',
@@ -28,8 +28,8 @@ setup(
 
     ],
 
-    keywords='sample setuptools development',
+    keywords='bayesian estimation A/B testing',
 
-    packages=['abtools'],
+    packages=find_packages(),
     install_requires=['numpy', 'pymc3', 'seaborn', 'matplotlib'],
 )
