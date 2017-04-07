@@ -1,1 +1,1 @@
-from .models import ConversionModel, ARPPUModel, ARPUModel
+from .models import ConversionModel, WaldARPPUModel, WaldARPUModel
