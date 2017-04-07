@@ -11,8 +11,7 @@ class ConversionModel(BaseABModel):
     """
     Conversion model with Bernoulli likelihood
     """
-    def __init__(self, observed_A_conversion, observed_B_conversion,
-                 std_coeff=2, auto_init=True):
+    def __init__(self, observed_A_conversion, observed_B_conversion, auto_init=True):
 
         super(ConversionModel, self).__init__(
             'Conversion A/B model',
@@ -22,35 +21,34 @@ class ConversionModel(BaseABModel):
         observed_A_conversion = np.array(observed_A_conversion)
         observed_B_conversion = np.array(observed_B_conversion)
 
-        mu_init_A = observed_A_conversion.mean()
-        mu_init_B = observed_B_conversion.mean()
+        alpha_A = np.sum(observed_A_conversion)
+        alpha_B = np.sum(observed_B_conversion)
 
-        sd_init_A = observed_A_conversion.std() * std_coeff
-        sd_init_B = observed_B_conversion.std() * std_coeff
+        beta_A = len(observed_A_conversion)
+        beta_B = len(observed_B_conversion)
 
         with self.model:
-            p_A = pm.Gamma('$p_A$', mu=mu_init_A, sd=sd_init_A)
-            p_B = pm.Gamma('$p_B$', mu=mu_init_B, sd=sd_init_B)
+            p_A = pm.Beta('$p_A$', alpha=alpha_A, beta=beta_A)
+            p_B = pm.Beta('$p_B$', alpha=alpha_B, beta=beta_B)
 
             A_C = pm.Bernoulli('$A_C$', p=p_A, observed=observed_A_conversion)
             B_C = pm.Bernoulli('$B_C$', p=p_B, observed=observed_B_conversion)
 
             delta = pm.Deterministic('$\Delta_C$', p_B - p_A)
 
-    def plot_deltas(self, burn_in):
+    def plot_deltas(self):
         return super(ConversionModel, self).plot_result(
             ['$\Delta_C$'],
-            burn_in, ref_val=0
+            ref_val=0
         )
 
-    def plot_params(self, burn_in):
+    def plot_params(self):
         return super(ConversionModel, self).plot_result(
-            ['$p_A$', '$p_B$'],
-            burn_in
+            ['$p_A$', '$p_B$']
         )
 
 
-class ARPPUModel(BaseABModel):
+class WaldARPPUModel(BaseABModel):
     """
     ARPPU model with Wald likelihood
     """
@@ -59,8 +57,8 @@ class ARPPUModel(BaseABModel):
                  upper_prior_bound=1000,
                  std_coeff=2, auto_init=True):
 
-        super(ARPPUModel, self).__init__(
-            'ARPPU A/B model',
+        super(WaldARPPUModel, self).__init__(
+            'WaldARPPU A/B model',
             auto_init
         )
 
@@ -86,9 +84,9 @@ class ARPPUModel(BaseABModel):
             B_arppu = pm.Gamma('$B_{ARPPU}$', mu=mu_arppu_init_b,
                                sd=std_arppu_init_b)
 
-            A_arppu_lhd = pm.Wald('A_arppu_lhd', mu=A_arppu, lam=lam_a,
+            A_arppu_lhd = pm.Wald('$A$', mu=A_arppu, lam=lam_a,
                                   observed=observed_A_arppu)
-            B_arppu_lhd = pm.Wald('B_arppu_lhd', mu=B_arppu, lam=lam_b,
+            B_arppu_lhd = pm.Wald('$B$', mu=B_arppu, lam=lam_b,
                                   observed=observed_B_arppu)
 
             A_arppu_var = pm.Deterministic('$A_{ARPPU} var$', (A_arppu**3/lam_a))
@@ -96,6 +94,7 @@ class ARPPUModel(BaseABModel):
 
             delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
                                            B_arppu - A_arppu)
+
             delta_std = pm.Deterministic('$\Delta_{std}$',
                                          np.sqrt(B_arppu_var) - np.sqrt(A_arppu_var))
             effect_size = pm.Deterministic(
@@ -103,22 +102,21 @@ class ARPPUModel(BaseABModel):
                 delta_arppu / np.sqrt((A_arppu_var + B_arppu_var) / 2)
             )
 
-    def plot_deltas(self, burn_in):
-        return super(ARPPUModel, self).plot_result(
+    def plot_deltas(self):
+        return super(WaldARPPUModel, self).plot_result(
             ['$\Delta_{ARPPU}$', '$\Delta_{std}$', 'effect_size'],
-            burn_in, ref_val=0
+            ref_val=0
         )
 
-    def plot_params(self, burn_in):
-        return super(ARPPUModel, self).plot_result(
+    def plot_params(self):
+        return super(WaldARPPUModel, self).plot_result(
             [
                 '$A_{ARPPU}$', '$A_{ARPPU}$'
-            ],
-            burn_in
+            ]
         )
 
 
-class ARPUModel(BaseABModel):
+class WaldARPUModel(BaseABModel):
     """
     Conversion model with Bernoulli likelihood
     """
@@ -127,8 +125,8 @@ class ARPUModel(BaseABModel):
                  upper_prior_bound=1000,
                  std_coeff=2, auto_init=True):
 
-        super(ARPUModel, self).__init__(
-            'ARPU A/B model',
+        super(WaldARPUModel, self).__init__(
+            'WaldARPU A/B model',
             auto_init
         )
 
@@ -138,10 +136,11 @@ class ARPUModel(BaseABModel):
         observed_A_conversion = np.array(observed_A_conversion)
         observed_B_conversion = np.array(observed_B_conversion)
 
-        mu_conv_init_a = np.mean(observed_A_conversion)
-        mu_conv_init_b = np.mean(observed_B_conversion)
-        std_conv_init_a = np.std(observed_A_conversion) * std_coeff
-        std_conv_init_b = np.std(observed_B_conversion) * std_coeff
+        alpha_A = np.sum(observed_A_conversion)
+        alpha_B = np.sum(observed_B_conversion)
+
+        beta_A = len(observed_A_conversion)
+        beta_B = len(observed_B_conversion)
 
         mu_arppu_init_a = np.mean(observed_A_arppu)
         mu_arppu_init_b = np.mean(observed_B_arppu)
@@ -160,8 +159,7 @@ class ARPUModel(BaseABModel):
                                sd=std_arppu_init_a)
 
             # Priors for conversion
-            conv_prob_a = pm.Gamma('$p_A$', mu=mu_conv_init_a,
-                                   sd=std_conv_init_a)
+            conv_prob_a = pm.Beta('$p_A$', alpha=alpha_A, beta=beta_A)
 
             # Priors for B group
             # ================================================================
@@ -174,19 +172,18 @@ class ARPUModel(BaseABModel):
                                sd=std_arppu_init_b)
 
             # Priors for conversion
-            conv_prob_b = pm.Gamma('$p_B$', mu=mu_conv_init_b,
-                                   sd=std_conv_init_b)
+            conv_prob_b = pm.Beta('$p_B$', alpha=alpha_B, beta=beta_B)
 
             # Likelihoods
             # ================================================================
-            A_arppu_lhd = pm.Wald('A_arppu_lhd', mu=A_arppu, lam=lam_a,
+            A_arppu_lhd = pm.Wald('$A$', mu=A_arppu, lam=lam_a,
                                   observed=observed_A_arppu)
-            B_arppu_lhd = pm.Wald('B_arppu_lhd', mu=B_arppu, lam=lam_b,
+            B_arppu_lhd = pm.Wald('$B$', mu=B_arppu, lam=lam_b,
                                   observed=observed_B_arppu)
 
-            A_conversion_lhd = pm.Bernoulli('A_conversion_lhd', p=conv_prob_a,
+            A_conversion_lhd = pm.Bernoulli('$A_C$', p=conv_prob_a,
                                             observed=observed_A_conversion)
-            B_conversion_lhd = pm.Bernoulli('B_conversion_lhd', p=conv_prob_b,
+            B_conversion_lhd = pm.Bernoulli('$B_C$', p=conv_prob_b,
                                             observed=observed_B_conversion)
 
             # Deterministic stats for a model
@@ -210,21 +207,20 @@ class ARPUModel(BaseABModel):
                 delta_arppu / np.sqrt((A_arppu_var + B_arppu_var) / 2)
             )
 
-    def plot_deltas(self, burn_in):
-        return super(ARPUModel, self).plot_result(
+    def plot_deltas(self):
+        return super(WaldARPUModel, self).plot_result(
             [
              '$\Delta_C$', '$\Delta_{ARPPU}$', '$\Delta_{ARPU}$',
              'effect_size', '$\Delta_{std}$'
             ],
-            burn_in, ref_val=0
+            ref_val=0
         )
 
-    def plot_params(self, burn_in):
-        return super(ARPUModel, self).plot_result(
+    def plot_params(self):
+        return super(WaldARPUModel, self).plot_result(
             [
                 '$p_A$', '$p_B$',
                 '$A_{ARPPU}$', '$A_{ARPPU}$',
                 '$A_{ARPU}$', '$A_{ARPU}$'
-            ],
-            burn_in
+            ]
         )
