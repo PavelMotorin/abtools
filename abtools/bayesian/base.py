@@ -4,9 +4,9 @@ import numpy as np
 import pymc3 as pm
 
 
-class BaseABModel(object):
+class BaseModel(object):
 
-    def __init__(self, name='Base A/B Model', auto_init=True):
+    def __init__(self, name='Base Model', auto_init=True):
 
         self.model = pm.Model()
         self.name = name
@@ -19,12 +19,12 @@ class BaseABModel(object):
         """
         with self.model:
             if init.upper() == 'ADVI':
-                self.means, _, self.elbos = pm.variational.advi(n=n_init)
+                self.means, self.stds, self.elbos = pm.variational.advi(n=n_init)
             elif init.upper() == 'MAP':
                 self.means = pm.find_MAP()
 
-    def fit(self, step=pm.Metropolis, init='ADVI', samples=50000,
-            burn_in=0.1, thin=1, n_init=10000, n_jobs=1, sample_ppc=False):
+    def fit(self, step=pm.Metropolis, init='MAP', samples=10000,
+            burn_in=0.05, thin=1, n_init=10000, n_jobs=1, sample_ppc=False):
         """
         Fit model
         """
@@ -48,6 +48,8 @@ class BaseABModel(object):
             if sample_ppc:
                 self.posterior = pm.sample_ppc(self.trace)
 
+        return self
+
     def plot_result(self, varnames, ref_val=None):
         return pm.plot_posterior(
             self.trace,
@@ -55,3 +57,6 @@ class BaseABModel(object):
             color='#87ceeb',
             ref_val=ref_val
         )
+
+    def summary(self):
+        return pm.df_summary(self.trace)

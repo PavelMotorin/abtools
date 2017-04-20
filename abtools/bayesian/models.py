@@ -4,223 +4,101 @@ from __future__ import absolute_import
 import numpy as np
 import pymc3 as pm
 
-from .base import BaseABModel
+from .base import BaseModel
 
 
-class ConversionModel(BaseABModel):
+class BinaryModel(BaseModel):
     """
-    Conversion model with Bernoulli likelihood
+    Binary model with Bernoulli likelihood
     """
-    def __init__(self, observed_A_conversion, observed_B_conversion, auto_init=True):
+    def __init__(self, X_obs, auto_init=True):
 
-        super(ConversionModel, self).__init__(
-            'Conversion A/B model',
+        super(BinaryModel, self).__init__(
+            'Binary A/B model',
             auto_init
         )
 
-        observed_A_conversion = np.array(observed_A_conversion)
-        observed_B_conversion = np.array(observed_B_conversion)
-
-        alpha_A = np.sum(observed_A_conversion)
-        alpha_B = np.sum(observed_B_conversion)
-
-        beta_A = len(observed_A_conversion)
-        beta_B = len(observed_B_conversion)
+        X_obs = np.array(X_obs)
 
         with self.model:
-            p_A = pm.Beta('$p_A$', alpha=alpha_A, beta=beta_A)
-            p_B = pm.Beta('$p_B$', alpha=alpha_B, beta=beta_B)
+            p = pm.Uniform('$p$', 0, 1)
 
-            A_C = pm.Bernoulli('$A_C$', p=p_A, observed=observed_A_conversion)
-            B_C = pm.Bernoulli('$B_C$', p=p_B, observed=observed_B_conversion)
-
-            delta = pm.Deterministic('$\Delta_C$', p_B - p_A)
-
-    def plot_deltas(self):
-        return super(ConversionModel, self).plot_result(
-            ['$\Delta_C$'],
-            ref_val=0
-        )
+            X = pm.Bernoulli('$X$', p=p, observed=X_obs)
 
     def plot_params(self):
-        return super(ConversionModel, self).plot_result(
-            ['$p_A$', '$p_B$']
+        return super(BinaryModel, self).plot_result(
+            ['$p$']
         )
 
 
-class WaldARPPUModel(BaseABModel):
+class WaldModel(BaseModel):
     """
-    ARPPU model with Wald likelihood
+    Heavy Tailed model with Inverse Gaussian (Wald) likelihood
     """
-    def __init__(self,
-                 observed_A_arppu, observed_B_arppu,
-                 upper_prior_bound=1000,
-                 std_coeff=2, auto_init=True):
+    def __init__(self, X_obs, lower=.01, upper=1000, auto_init=True):
 
-        super(WaldARPPUModel, self).__init__(
-            'WaldARPPU A/B model',
+        super(WaldModel, self).__init__(
+            'Heavy Tailed Inverse Gaussian A/B model',
             auto_init
         )
 
-        observed_A_arppu = np.array(observed_A_arppu)
-        observed_B_arppu = np.array(observed_B_arppu)
+        X_obs = np.array(X_obs)
 
-        mu_arppu_init_a = np.mean(observed_A_arppu)
-        mu_arppu_init_b = np.mean(observed_B_arppu)
-        std_arppu_init_a = np.std(observed_A_arppu) * std_coeff
-        std_arppu_init_b = np.std(observed_B_arppu) * std_coeff
+        mu_0 = np.mean(X_obs)
+        sigma_0 = np.std(X_obs) * 10
 
         with self.model:
 
-            alpha0_a = pm.Uniform('$\\alpha_0^A$', lower=1,
-                                  upper=upper_prior_bound)
-            lam_a = pm.Exponential('$\\lambda_A$', lam=alpha0_a)
-            A_arppu = pm.Gamma('$A_{ARPPU}$', mu=mu_arppu_init_a,
-                               sd=std_arppu_init_a)
-            alpha0_b = pm.Uniform('$\\alpha_0^B$', lower=1,
-                                  upper=upper_prior_bound)
-            lam_b = pm.Exponential('$\\lambda_B$', lam=alpha0_b)
+            alpha = pm.Uniform('$\\alpha$', lower=lower, upper=upper)
+            lam = pm.Exponential('$\\lambda$', lam=alpha)
+            mu = pm.Gamma('$\\mu$', mu=mu_0, sd=sigma_0)
 
-            B_arppu = pm.Gamma('$B_{ARPPU}$', mu=mu_arppu_init_b,
-                               sd=std_arppu_init_b)
+            X = pm.Wald('$X$', mu=mu, lam=lam, observed=X_obs)
 
-            A_arppu_lhd = pm.Wald('$A$', mu=A_arppu, lam=lam_a,
-                                  observed=observed_A_arppu)
-            B_arppu_lhd = pm.Wald('$B$', mu=B_arppu, lam=lam_b,
-                                  observed=observed_B_arppu)
-
-            A_arppu_var = pm.Deterministic('$A_{ARPPU} var$', (A_arppu**3/lam_a))
-            B_arppu_var = pm.Deterministic('$B_{ARPPU} var$', (B_arppu**3/lam_b))
-
-            delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
-                                           B_arppu - A_arppu)
-
-            delta_std = pm.Deterministic('$\Delta_{std}$',
-                                         np.sqrt(B_arppu_var) - np.sqrt(A_arppu_var))
-            effect_size = pm.Deterministic(
-                'effect_size',
-                delta_arppu / np.sqrt((A_arppu_var + B_arppu_var) / 2)
-            )
-
-    def plot_deltas(self):
-        return super(WaldARPPUModel, self).plot_result(
-            ['$\Delta_{ARPPU}$', '$\Delta_{std}$', 'effect_size'],
-            ref_val=0
-        )
+            variance = pm.Deterministic('$\\sigma^2$', (mu**3/lam))
 
     def plot_params(self):
-        return super(WaldARPPUModel, self).plot_result(
+        return super(WaldModel, self).plot_result(
             [
-                '$A_{ARPPU}$', '$A_{ARPPU}$'
+                '$\\mu$', '$\\lam$', '$\\alpha$'
             ]
         )
 
 
-class WaldARPUModel(BaseABModel):
+class LognormalModel(BaseModel):
     """
-    Conversion model with Bernoulli likelihood
+    Heavy Tailed model with Log Normal likelihood
     """
-    def __init__(self, observed_A_conversion, observed_B_conversion,
-                 observed_A_arppu, observed_B_arppu,
-                 upper_prior_bound=1000,
-                 std_coeff=2, auto_init=True):
+    def __init__(self, X_obs, lower=.01, upper=1000, auto_init=True):
 
-        super(WaldARPUModel, self).__init__(
-            'WaldARPU A/B model',
+        super(LognormalModel, self).__init__(
+            'Heavy Tailed Log Normal A/B model',
             auto_init
         )
 
-        observed_A_arppu = np.array(observed_A_arppu)
-        observed_B_arppu = np.array(observed_B_arppu)
+        X_obs = np.array(X_obs)
 
-        observed_A_conversion = np.array(observed_A_conversion)
-        observed_B_conversion = np.array(observed_B_conversion)
-
-        alpha_A = np.sum(observed_A_conversion)
-        alpha_B = np.sum(observed_B_conversion)
-
-        beta_A = len(observed_A_conversion)
-        beta_B = len(observed_B_conversion)
-
-        mu_arppu_init_a = np.mean(observed_A_arppu)
-        mu_arppu_init_b = np.mean(observed_B_arppu)
-        std_arppu_init_a = np.std(observed_A_arppu) * std_coeff
-        std_arppu_init_b = np.std(observed_B_arppu) * std_coeff
+        mu_0 = np.mean(np.log(X_obs))
+        sigma_0 = np.std(np.log(X_obs)) * 10
 
         with self.model:
 
-            # Priors for A group
-            # ================================================================
-            # Priors for ARPPU
-            alpha0_a = pm.Uniform('$\\alpha_0^A$', lower=1,
-                                  upper=upper_prior_bound)
-            lam_a = pm.Exponential('$\\lambda_A$', lam=alpha0_a)
-            A_arppu = pm.Gamma('$A_{ARPPU}$', mu=mu_arppu_init_a,
-                               sd=std_arppu_init_a)
+            alpha = pm.Uniform('$\\alpha$', lower=lower, upper=upper)
+            beta = pm.Uniform('$\\beta$', lower=lower, upper=upper)
+            tau = pm.Gamma('$\\tau$', alpha=alpha, beta=beta)
+            mu_l = pm.Gamma('$\\mu_{ln(X)}$', mu=mu_0, sd=sigma_0)
 
-            # Priors for conversion
-            conv_prob_a = pm.Beta('$p_A$', alpha=alpha_A, beta=beta_A)
+            X = pm.Lognormal('$X$', mu=mu_l, tau=tau, observed=X_obs)
 
-            # Priors for B group
-            # ================================================================
-            # Priors for ARPPU
-            alpha0_b = pm.Uniform('$\\alpha_0^B$', lower=1,
-                                  upper=upper_prior_bound)
-            lam_b = pm.Exponential('$\\lambda_B$', lam=alpha0_b)
-
-            B_arppu = pm.Gamma('$B_{ARPPU}$', mu=mu_arppu_init_b,
-                               sd=std_arppu_init_b)
-
-            # Priors for conversion
-            conv_prob_b = pm.Beta('$p_B$', alpha=alpha_B, beta=beta_B)
-
-            # Likelihoods
-            # ================================================================
-            A_arppu_lhd = pm.Wald('$A$', mu=A_arppu, lam=lam_a,
-                                  observed=observed_A_arppu)
-            B_arppu_lhd = pm.Wald('$B$', mu=B_arppu, lam=lam_b,
-                                  observed=observed_B_arppu)
-
-            A_conversion_lhd = pm.Bernoulli('$A_C$', p=conv_prob_a,
-                                            observed=observed_A_conversion)
-            B_conversion_lhd = pm.Bernoulli('$B_C$', p=conv_prob_b,
-                                            observed=observed_B_conversion)
-
-            # Deterministic stats for a model
-            # ================================================================
-            A_arpu = pm.Deterministic('$A_{ARPU}$', A_arppu * conv_prob_a)
-            B_arpu = pm.Deterministic('$B_{ARPU}$', B_arppu * conv_prob_b)
-            # Difference between posterior expected values of model parameters
-            delta_conv = pm.Deterministic('$\Delta_C$',
-                                          conv_prob_b - conv_prob_a)
-            delta_arppu = pm.Deterministic('$\Delta_{ARPPU}$',
-                                           B_arppu - A_arppu)
-            delta_arpu = pm.Deterministic('$\Delta_{ARPU}$', B_arpu - A_arpu)
-
-            A_arppu_var = pm.Deterministic('$A_{ARPPU} var$', (A_arppu**3/lam_a))
-            B_arppu_var = pm.Deterministic('$B_{ARPPU} var$', (B_arppu**3/lam_b))
-
-            delta_std = pm.Deterministic('$\Delta_{std}$',
-                                         np.sqrt(B_arppu_var) - np.sqrt(A_arppu_var))
-            effect_size = pm.Deterministic(
-                'effect_size',
-                delta_arppu / np.sqrt((A_arppu_var + B_arppu_var) / 2)
+            mu = pm.Deterministic('$\\mu$', np.exp(mu_l+1/(2 * tau)))
+            variance = pm.Deterministic(
+                '\\sigma^2$',
+                (np.exp(1/tau - 1) * np.exp(2*mu_l - 1/tau))
             )
 
-    def plot_deltas(self):
-        return super(WaldARPUModel, self).plot_result(
-            [
-             '$\Delta_C$', '$\Delta_{ARPPU}$', '$\Delta_{ARPU}$',
-             'effect_size', '$\Delta_{std}$'
-            ],
-            ref_val=0
-        )
-
     def plot_params(self):
-        return super(WaldARPUModel, self).plot_result(
+        return super(LognormalModel, self).plot_result(
             [
-                '$p_A$', '$p_B$',
-                '$A_{ARPPU}$', '$A_{ARPPU}$',
-                '$A_{ARPU}$', '$A_{ARPU}$'
+                '$\\mu$', '$\\sigma^2$'
             ]
         )
