@@ -54,8 +54,8 @@ class WaldABModel(BaseModel):
 
         A_obs, B_obs = np.array(A_obs), np.array(B_obs)
 
-        x_min = np.log(min(A_obs.min(), B_obs.min()) * (1. - uncertainty))
-        x_max = np.log(max(A_obs.max(), B_obs.max()) * (1. + uncertainty))
+        x_min = min(A_obs.min(), B_obs.min()) * (1. - uncertainty)
+        x_max = max(A_obs.max(), B_obs.max()) * (1. + uncertainty)
 
         with self.model:
 
