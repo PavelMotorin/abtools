@@ -186,10 +186,10 @@ class LognormalABModel(BaseModel):
 
         with self.model:
 
-            tau_a = pm.Uniform('$\\lambda_A$', 0, x_max)
+            tau_a = pm.Uniform('$\\tau_A$', 0, x_max)
             mu_l_a = pm.Uniform('$\\mu_{ln(A)}$', x_min, x_max)
 
-            tau_b = pm.Uniform('$\\lambda_B$', 0, x_max)
+            tau_b = pm.Uniform('$\\tau_B$', 0, x_max)
             mu_l_b = pm.Uniform('$\\mu_{ln(B)}$', x_min, x_max)
 
             A = pm.Lognormal('$A$', mu=mu_l_a, tau=tau_a, observed=A_obs)
@@ -253,10 +253,10 @@ class LognormalARPUABModel(BaseModel):
 
         with self.model:
 
-            tau_a = pm.Uniform('$\\lambda_A$', 0, x_max)
+            tau_a = pm.Uniform('$\\tau_A$', 0, x_max)
             mu_l_a = pm.Uniform('$\\mu_{ln(A)}$', x_min, x_max)
 
-            tau_b = pm.Uniform('$\\lambda_B$', 0, x_max)
+            tau_b = pm.Uniform('$\\tau_B$', 0, x_max)
             mu_l_b = pm.Uniform('$\\mu_{ln(B)}$', x_min, x_max)
 
             A = pm.Lognormal('$A$', mu=mu_l_a, tau=tau_a, observed=A_obs_R)
