@@ -45,7 +45,7 @@ class WaldABModel(BaseModel):
     """
     Heavy Tailed model with Inverse Gaussian (Wald) likelihood
     """
-    def __init__(self, A_obs, B_obs, lower=.01, upper=1000, auto_init=True):
+    def __init__(self, A_obs, B_obs, uncertainty=.3, auto_init=True):
 
         super(WaldABModel, self).__init__(
             'Heavy Tailed Inverse Gaussian A/B model',
@@ -54,19 +54,16 @@ class WaldABModel(BaseModel):
 
         A_obs, B_obs = np.array(A_obs), np.array(B_obs)
 
-        mu_a_0, mu_b_0 = np.mean(A_obs), np.mean(B_obs)
-        sigma_a_0, sigma_b_0 = np.std(A_obs) * 10, np.std(B_obs) * 10
+        x_min = np.log(min(A_obs.min(), B_obs.min()) * (1. - uncertainty))
+        x_max = np.log(max(A_obs.max(), B_obs.max()) * (1. + uncertainty))
 
         with self.model:
 
-            alpha_a = pm.Uniform('$\\alpha_A$', lower=lower, upper=upper)
-            lam_a = pm.Exponential('$\\lambda_A$', lam=alpha_a)
-            mu_a = pm.Gamma('$\\mu_A$', mu=mu_a_0, sd=sigma_a_0)
+            lam_a = pm.Uniform('$\\lambda_A$', 0, x_max)
+            mu_a = pm.Uniform('$\\mu_A$',x_min, x_max)
 
-            alpha_b = pm.Uniform('$\\alpha_B$', lower=lower, upper=upper)
-            lam_b = pm.Exponential('$\\lambda_B$', lam=alpha_b)
-
-            mu_b = pm.Gamma('$\\mu_B$', mu=mu_b_0, sd=sigma_b_0)
+            lam_b = pm.Uniform('$\\lambda_B$', 0, x_max)
+            mu_b = pm.Uniform('$\\mu_B$', x_min, x_max)
 
             A = pm.Wald('$A$', mu=mu_a, lam=lam_a, observed=A_obs)
             B = pm.Wald('$B$', mu=mu_b, lam=lam_b, observed=B_obs)
@@ -104,7 +101,7 @@ class WaldARPUABModel(BaseModel):
     ARPPU with Inverse Gaussian (Wald)
     """
     def __init__(self, A_obs_C, B_obs_C, A_obs_R, B_obs_R,
-                 lower=.01, upper=1000, auto_init=True):
+                 uncertainty=.3, auto_init=True):
 
         super(WaldARPUABModel, self).__init__(
             'ARPU Wald A/B model',
@@ -114,20 +111,18 @@ class WaldARPUABModel(BaseModel):
         A_obs_R, B_obs_R = np.array(A_obs_R), np.array(B_obs_R)
         A_obs_C, B_obs_C = np.array(A_obs_C), np.array(B_obs_C)
 
-        mu_a_0, mu_b_0 = np.mean(A_obs_R), np.mean(B_obs_R)
-        sigma_a_0, sigma_b_0 = np.std(A_obs_R) * 10, np.std(B_obs_R) * 10
+        x_min = min(A_obs_R.min(), B_obs_R.min()) * (1. - uncertainty)
+        x_max = max(A_obs_R.max(), B_obs_R.max()) * (1. + uncertainty)
 
         with self.model:
 
             # priors
-            alpha_a = pm.Uniform('$\\alpha_A$', lower=lower, upper=upper)
-            lam_a = pm.Exponential('$\\lambda_A$', lam=alpha_a)
-            mu_a = pm.Gamma('$\\mu_A$', mu=mu_a_0, sd=sigma_a_0)
+            lam_a = pm.Uniform('$\\lambda_A$', 0, x_max)
+            mu_a = pm.Uniform('$\\mu_A$',x_min, x_max)
             p_a = pm.Uniform('$p_A$', 0, 1)
 
-            alpha_b = pm.Uniform('$\\alpha_B$', lower=lower, upper=upper)
-            lam_b = pm.Exponential('$\\lambda_B$', lam=alpha_b)
-            mu_b = pm.Gamma('$\\mu_B$', mu=mu_b_0, sd=sigma_b_0)
+            lam_b = pm.Uniform('$\\lambda_B$', 0, x_max)
+            mu_b = pm.Uniform('$\\mu_B$', x_min, x_max)
             p_b = pm.Uniform('$p_B$', 0, 1)
 
             # likelihoods
@@ -177,7 +172,7 @@ class LognormalABModel(BaseModel):
     """
     Heavy Tailed model with Log Normal likelihood
     """
-    def __init__(self, A_obs, B_obs, lower=.01, upper=1000, auto_init=True):
+    def __init__(self, A_obs, B_obs, uncertainty=.3, auto_init=True):
 
         super(LognormalABModel, self).__init__(
             'Heavy Tailed Log Normal A/B model',
@@ -186,21 +181,16 @@ class LognormalABModel(BaseModel):
 
         A_obs, B_obs = np.array(A_obs), np.array(B_obs)
 
-        mu_a_0, mu_b_0 = np.mean(np.log(A_obs)), np.mean(np.log(B_obs))
-        sigma_a_0, sigma_b_0 = np.std(np.log(A_obs)) * 10, np.std(np.log(B_obs)) * 10
+        x_min = np.log(min(A_obs.min(), B_obs.min()) * (1. - uncertainty))
+        x_max = np.log(max(A_obs.max(), B_obs.max()) * (1. + uncertainty))
 
         with self.model:
 
-            alpha_a = pm.Uniform('$\\alpha_A$', lower=lower, upper=upper)
-            beta_a = pm.Uniform('$\\beta_A$', lower=lower, upper=upper)
-            tau_a = pm.Gamma('$\\lambda_A$', alpha=alpha_a, beta=beta_a)
-            mu_l_a = pm.Gamma('$\\mu_{ln(A)}$', mu=mu_a_0, sd=sigma_a_0)
+            tau_a = pm.Uniform('$\\lambda_A$', 0, x_max)
+            mu_l_a = pm.Uniform('$\\mu_{ln(A)}$', x_min, x_max)
 
-            alpha_b = pm.Uniform('$\\alpha_B$', lower=lower, upper=upper)
-            beta_b = pm.Uniform('$\\beta_B$', lower=lower, upper=upper)
-            tau_b = pm.Gamma('$\\lambda_B$', alpha=alpha_b, beta=alpha_b)
-
-            mu_l_b = pm.Gamma('$\\mu_{ln(B)}$', mu=mu_b_0, sd=sigma_b_0)
+            tau_b = pm.Uniform('$\\lambda_B$', 0, x_max)
+            mu_l_b = pm.Uniform('$\\mu_{ln(B)}$', x_min, x_max)
 
             A = pm.Lognormal('$A$', mu=mu_l_a, tau=tau_a, observed=A_obs)
             B = pm.Lognormal('$B$', mu=mu_l_b, tau=tau_b, observed=B_obs)
@@ -258,20 +248,16 @@ class LognormalARPUABModel(BaseModel):
         A_obs_R, B_obs_R = np.array(A_obs_R), np.array(B_obs_R)
         A_obs_C, B_obs_C = np.array(A_obs_C), np.array(B_obs_C)
 
-        mu_a_0, mu_b_0 = np.mean(A_obs_R), np.mean(B_obs_R)
-        sigma_a_0, sigma_b_0 = np.std(A_obs_R) * 10, np.std(B_obs_R) * 10
+        x_min = np.log(min(A_obs_R.min(), B_obs_R.min()) * (1. - uncertainty))
+        x_max = np.log(max(A_obs_R.max(), B_obs_R.max()) * (1. + uncertainty))
 
         with self.model:
 
-            alpha_a = pm.Uniform('$\\alpha_A$', lower=lower, upper=upper)
-            beta_a = pm.Uniform('$\\beta_A$', lower=lower, upper=upper)
-            tau_a = pm.Gamma('$\\lambda_A$', alpha=alpha_a, beta=beta_a)
-            mu_l_a = pm.Gamma('$\\mu_{ln(A)}$', mu=mu_a_0, sd=sigma_a_0)
+            tau_a = pm.Uniform('$\\lambda_A$', 0, x_max)
+            mu_l_a = pm.Uniform('$\\mu_{ln(A)}$', x_min, x_max)
 
-            alpha_b = pm.Uniform('$\\alpha_B$', lower=lower, upper=upper)
-            beta_b = pm.Uniform('$\\beta_B$', lower=lower, upper=upper)
-            tau_b = pm.Gamma('$\\lambda_B$', alpha=alpha_b, beta=alpha_b)
-            mu_l_b = pm.Gamma('$\\mu_{ln(B)}$', mu=mu_b_0, sd=sigma_b_0)
+            tau_b = pm.Uniform('$\\lambda_B$', 0, x_max)
+            mu_l_b = pm.Uniform('$\\mu_{ln(B)}$', x_min, x_max)
 
             A = pm.Lognormal('$A$', mu=mu_l_a, tau=tau_a, observed=A_obs_R)
             B = pm.Lognormal('$B$', mu=mu_l_b, tau=tau_b, observed=B_obs_R)
