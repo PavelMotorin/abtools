@@ -75,6 +75,8 @@ target/
 # celery beat schedule file
 celerybeat-schedule
 
+.spyproject
+
 # dotenv
 .env
 
