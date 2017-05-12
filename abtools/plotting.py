@@ -1,39 +1,78 @@
+# -*- coding: utf-8 -*-
+
 import numpy as np
 import scipy as sp
-import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-def _compute_stats(a, b, ax):
+CLRS_LT = ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f']
+CLRS_DK = ['#2980b9', '#c0392b', '#27ae60', '#f1c40f'] 
 
+def __compute_stats(a, b, ax):
+    """
+    Function that compute statistics for a plot's points.
+    """
     stats = """
     Pearson\'s r = %.2f
     MAPE = %.2f%%
     Euclidean distance = %.4f
-    """ % (sp.stats.pearsonr(a, b)[0],
-           np.mean(np.abs(np.where(a != 0, (a - b) / a, 0)))*100,
-           np.linalg.norm(a-b)
-           )
+    """ % (
+        sp.stats.pearsonr(a, b)[0],
+        np.mean(np.abs(np.where(a != 0, (a - b) / a, 0)))*100,
+        np.linalg.norm(a-b)
+    )
 
-    ax.text(0, 0.91,
-            stats,
-            horizontalalignment='left',
-            verticalalignment='center',
-            transform=ax.transAxes
-            )
+    ax.text(
+        0,
+        0.91,
+        stats,
+        horizontalalignment='left',
+        verticalalignment='center',
+        transform=ax.transAxes
+    )
 
     return stats
 
 
-def ppplot(a, b, distr_names=['First', 'Second'],
-           num_points=5000, splitted=False, figsize=(8, 8),
-           log_transform=False):
+def ppplot(a, b, distr_names=['First', 'Second'], figsize=(8, 8),
+           num_points=100, splitted=False, log_transform=False):
     """
     P-P plot - plots two cumulative distribution functions against each other.
-    Useful for comparing values of two distributions:
-    two empirical distributions or theoretical and empirical
-
+    
+    In statistics, a P–P plot [1] (probability–probability plot or percent–percent 
+    plot) is a probability plot for assessing how closely two data sets agree, 
+    which plots the two cumulative distribution functions against each other. 
+    P-P plots are vastly used to evaluate the skewness of a distribution.
+    
+    Parameters
+    ----------
+        a, b : list
+            List, numpy array or pandas series with values
+        distr_names : list of str
+            Names for two distribuions that will be plotted on axes
+        num_points : int
+            Number of points on a plot - detalization parameter
+        splitted : bool
+            Split (or not) plot into four plots for each quartile
+        log_transform : bool
+            Perform (or not) log transform on observed data
+    
+    Returns
+    -------
+    
+    [matplotlib.axes._axes.Axes]
+        List of matplotlib Axes that contains p-p plot
+        
+    References
+    ---------
+    
+    [1] P-P plot - https://en.wikipedia.org/wiki/P-P_plot
+    
     """
+    def plot(a_p, b_p, ax, q):
+        ax.scatter(a_p, b_p, s=30, c=CLRS_DK[0])
+        ax.plot(q, q, c=CLRS_DK[1], alpha=0.75)
+        return ax
 
     a = np.array(a)
     b = np.array(b)
@@ -51,11 +90,6 @@ def ppplot(a, b, distr_names=['First', 'Second'],
         a_p.append((a <= z).mean())
         b_p.append((b <= z).mean())
 
-    def plot(a_p, b_p, ax, q):
-        ax.scatter(a_p, b_p, s=30, c=sns.color_palette()[0])
-        ax.plot(q, q, c=sns.color_palette()[2], alpha=0.75)
-        return ax
-
     if not splitted:
         fig, ax = plt.subplots(figsize=figsize)
         ax = plot(a_p, b_p, ax, q=[0, 1])
@@ -63,8 +97,8 @@ def ppplot(a, b, distr_names=['First', 'Second'],
         ax.set_xlabel("%s cumulative distribution" % distr_names[0])
         ax.set_ylabel("%s cumulative distribution" % distr_names[1])
 
-        _compute_stats(np.array(a_p), np.array(b_p), ax)
-        return ax
+        __compute_stats(np.array(a_p), np.array(b_p), ax)
+        return [ax]
     else:
         fig, axs = plt.subplots(2, 2, figsize=figsize)
 
@@ -83,19 +117,57 @@ def ppplot(a, b, distr_names=['First', 'Second'],
             )
 
         plt.suptitle('P-P plots for each quartiles')
-        return fig, axs
+        return axs
 
 
 def qqplot(a, b, distr_names=['First', 'Second'],
-           num_points=5000, fitted_line=False,
+           num_points=100, fitted_line=False,
            splitted=False, figsize=(8, 8), log_transform=False):
     """
     Q-Q plot - plots quantiles of two distributions against each other.
-    Useful for comparing shape of distributions:
-    two empirical distributions or theoretical and empirical
-
-
+    Useful for comparing shape of distributions.
+    
+    In statistics, a Q–Q plot[1] ("Q" stands for quantile) is a probability 
+    plot, which is a graphical method for comparing two probability 
+    distributions by plotting their quantiles against each other. 
+    First, the set of intervals for the quantiles is chosen. A point (x, y) on 
+    the plot corresponds to one of the quantiles of the second distribution 
+    (y-coordinate) plotted against the same quantile of the first distribution 
+    (x-coordinate). Thus the line is a parametric curve with the parameter 
+    which is the (number of the) interval for the quantile.
+    
+    Parameters
+    ----------
+        a, b : list
+            List, numpy array or pandas series with values
+        distr_names : list of str
+            Names for two distribuions that will be plotted on axes
+        num_points : int
+            Number of points on a plot - detalization parameter
+        splitted : bool
+            Split (or not) plot into four plots for each quartile
+        log_transform : bool
+            Perform (or not) log transform on observed data
+        fitted_line : bool
+            Perform (or not) linear approximation for comparing line
+    
+    Returns
+    -------
+    
+    [matplotlib.axes._axes.Axes]
+        List of matplotlib Axes that contains p-p plot
+        
+    References
+    ---------
+    
+    [1] Q-Q plot - https://en.wikipedia.org/wiki/Q-Q_plot
+    
     """
+    def plot(q_a, q_b, line, ax):
+        ax.scatter(q_a, q_b, s=30, c=CLRS_DK[0])
+        ax.plot(q_a, line, c=CLRS_DK[1], alpha=0.75)
+        return ax
+
     a = np.array(a)
     b = np.array(b)
 
@@ -114,19 +186,15 @@ def qqplot(a, b, distr_names=['First', 'Second'],
     else:
         line = q_a
 
-    def plot(q_a, q_b, line, ax):
-        ax.scatter(q_a, q_b, s=30, c=sns.xkcd_rgb["denim blue"])
-        ax.plot(q_a, line, c=sns.xkcd_rgb["pale red"], alpha=0.75)
-        return ax
-
     if not splitted:
         fig, ax = plt.subplots(figsize=figsize)
         ax = plot(q_a, q_b, line, ax)
         ax.set_title('Q-Q plot')
         ax.set_xlabel("%s distribution's quantiles" % distr_names[0])
         ax.set_ylabel("%s distribution's quantiles" % distr_names[1])
-        _compute_stats(np.array(q_a), np.array(q_b), ax)
-        return ax
+        __compute_stats(np.array(q_a), np.array(q_b), ax)
+        return [ax]
+    
     else:
         fig, axs = plt.subplots(2, 2, figsize=figsize)
         quartiles = [[.0, .25], [.25, .50], [.50, .75], [.75, 1]]
@@ -134,11 +202,42 @@ def qqplot(a, b, distr_names=['First', 'Second'],
         for q, ax in zip(quartiles, np.ravel(axs)):
             start = int(q[0] * len(q_a))
             stop = int(q[1] * len(q_a))
-            ax = plot(
-                q_a[start:stop],
-                q_b[start:stop],
-                line[start:stop],
-                ax
-            )
+            ax = plot(q_a[start:stop], q_b[start:stop], line[start:stop], ax)
         plt.suptitle('Q-Q plots for each quartiles')
-        return fig, axs
+        return axs
+
+def abplot(a, b, alpha=0.05, hist_kwds={}):
+    """
+    Plot two histograms of A and B side-by-side.
+    
+    Parameters
+    ----------
+    a, b : {list, ndarray}
+        Observed data arrays
+    alpha : float
+        Plot (1 - alpha/2) and (alpha/2) percentiles
+    hist_kwds : dict
+        Matplotlib's hist keywords for customization
+        
+    Returns
+    -------
+    ax : matplotlib.axes
+    """
+    a, b = np.array(a), np.array(b)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    ax.hist(a, 50, label='A group', color='#3498db', alpha=0.5, **hist_kwds)
+    ax.hist(b, 50, label='B group', color='#e74c3c', alpha=0.5, **hist_kwds)
+    
+    ax.axvline(np.percentile(a, (alpha/2)*100), color='#2980b9', alpha=0.5, linestyle='--')
+    ax.axvline(a.mean(), color='#2980b9')
+    ax.axvline(np.percentile(a, (1 - alpha/2)*100), color='#2980b9', alpha=0.5, linestyle='--')
+    
+    ax.axvline(np.percentile(b, (alpha/2)*100), color='#c0392b', alpha=0.5, linestyle='--')
+    ax.axvline(b.mean(), color='#c0392b')
+    ax.axvline(np.percentile(b, (1 - alpha/2)*100), color='#c0392b', alpha=0.5, linestyle='--')
+    
+    ax.set_title('A-B histogram comparsion plot')
+    ax.legend()
+    
+    return ax

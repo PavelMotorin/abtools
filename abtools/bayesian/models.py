@@ -1,5 +1,4 @@
-from __future__ import print_function
-from __future__ import absolute_import
+# -*- coding: utf-8 -*-
 
 import numpy as np
 import pymc3 as pm
@@ -7,23 +6,24 @@ import pymc3 as pm
 from .base import BaseModel
 
 
+__all__ = [
+    'BinaryModel',
+    'WaldModel',
+    'LognormalModel'
+]
+
+
 class BinaryModel(BaseModel):
     """
     Binary model with Bernoulli likelihood
     """
-    def __init__(self, X_obs, auto_init=True):
+    def build_model(self, x_obs):
 
-        super(BinaryModel, self).__init__(
-            'Binary A/B model',
-            auto_init
-        )
-
-        X_obs = np.array(X_obs)
+        x_obs = np.array(x_obs)
 
         with self.model:
             p = pm.Uniform('$p$', 0, 1)
-
-            X = pm.Bernoulli('$X$', p=p, observed=X_obs)
+            x = pm.Bernoulli('$x$', p=p, observed=x_obs)
 
     def plot_params(self):
         return super(BinaryModel, self).plot_result(
@@ -35,7 +35,7 @@ class WaldModel(BaseModel):
     """
     Heavy Tailed model with Inverse Gaussian (Wald) likelihood
     """
-    def __init__(self, X_obs, lower=.01, upper=1000, auto_init=True):
+    def build_model(self, X_obs, lower=.01, upper=1000, auto_init=True):
 
         super(WaldModel, self).__init__(
             'Heavy Tailed Inverse Gaussian A/B model',
