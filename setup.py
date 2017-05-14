@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from setuptools import setup, find_packages
 from codecs import open
 from os import path
@@ -19,7 +19,7 @@ setup(
     url='https://github.com/ivanbagaev/abtools',
 
     author='Ivan Bagaev',
-    author_email='ivanbagaev1993@gmail.com',
+    author_email='ivan.bagaev1993@gmail.com',
 
     license='MIT',
 
@@ -33,5 +33,5 @@ setup(
     keywords='bayesian estimation A/B testing',
 
     packages=find_packages(),
-    install_requires=['numpy', 'pymc3', 'seaborn', 'matplotlib'],
+    install_requires=['numpy', 'scipy', 'pymc3', 'matplotlib'],
 )
