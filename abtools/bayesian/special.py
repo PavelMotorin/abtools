@@ -28,13 +28,13 @@ class WaldARPUABModel(BaseModel):
 
             # priors
             lam_a = pm.Uniform('$\\lambda_A$', 0, x_max)
-            mu_a = pm.Uniform('$\\mu_A$',x_min, x_max)
+            mu_a = pm.Uniform('$\\mu_A$', x_min, x_max)
 
             lam_b = pm.Uniform('$\\lambda_B$', 0, x_max)
             mu_b = pm.Uniform('$\\mu_B$', x_min, x_max)
 
-            p_a = pm.Beta('$p_A$', 1+a_obs_с.sum(), 1+len(a_obs_c)-a_obs_с.sum())
-            p_b = pm.Beta('$p_B$', 1+b_obs_с.sum(), 1+len(b_obs_c)-b_obs_с.sum())
+            p_a = pm.Uniform('$p_A$', 0, 1)
+            p_b = pm.Uniform('$p_B$', 0, 1)
 
 
             # likelihoods
@@ -68,7 +68,7 @@ class WaldARPUABModel(BaseModel):
             [
              '$\Delta_C$', '$\Delta_{ARPPU}$', '$\Delta_{ARPU}$',
              'Effect size', '$\Delta_{\\sigma}$'
-            ], 
+            ],
             ref_val=0
         )
 
@@ -85,27 +85,27 @@ class WaldARPUABModel(BaseModel):
 class LognormalARPUABModel(BaseModel):
     """
     Mixed A/B ARPU model with log-Normal likelihood for a revenue.
-    
-    ARPU model formalizes like follows ARPU = C * ARPPU, 
-    where C is conversion and ARPPU - expected value of revenue. 
+
+    ARPU model formalizes like follows ARPU = C * ARPPU,
+    where C is conversion and ARPPU - expected value of revenue.
     In this model C has a Bernoulli likehood and Uniform prior for $p$, where
     $p$ is conversion probability.ARPPU has a log-Normal likelihood and also
-    Uniform priors for $\mu$ and $\tau$. 
-    
+    Uniform priors for $\mu$ and $\tau$.
+
     Parameters
     ----------
-    
+
     data : dict
-        Dictionary with named arrays of observed values. Must contains 
+        Dictionary with named arrays of observed values. Must contains
         following keys:
         - A_rev, B_rev - non-zero revenue continuous observations
         - A_conv, B_conv - conversion binary [0, 1] observations
-    
+
     Examples
     --------
-    
+
     Simple usage example with artificial data:
-    
+
     >>> from scipy.stats import bernoulli, lognorm
     >>> from abtools.bayesian import LognormalARPUABModel
     >>> a_conv = bernoulli.rvs(0.05, size=5000)
@@ -125,14 +125,14 @@ class LognormalARPUABModel(BaseModel):
         # get data from given dict
         a_obs_r, b_obs_r = np.array(a['revenue']), np.array(b['revenue'])
         a_obs_c, b_obs_c = np.array(a['conversion']), np.array(b['conversion'])
-        
+
         # pool groups statistics
         m = (a_obs_r.mean() + b_obs_r.mean()) / 2
         v = (a_obs_r.var() + a_obs_r.var()) / 2
         # init values to make optimization more easy and speed up convergence
         init_mu = np.log(m / np.sqrt(1 + v / (m ** 2)))
         init_tau = 1 / np.log(1 + v / (m ** 2))
-    
+
         with self.model:
 
             tau_a = pm.Gamma('$\\tau_A$', mu=init_tau, sd=init_tau ** (-2) * 2)
@@ -156,8 +156,8 @@ class LognormalARPUABModel(BaseModel):
                 (np.exp(1/tau_b - 1) * np.exp(2*mu_l_b - 1/tau_b))
             )
 
-            p_a = pm.Beta('$p_A$', 1+a_obs_с.sum(), 1+len(a_obs_c)-a_obs_с.sum())
-            p_b = pm.Beta('$p_B$', 1+b_obs_с.sum(), 1+len(b_obs_c)-b_obs_с.sum())
+            p_a = pm.Uniform('$p_A$', 0, 1)
+            p_b = pm.Uniform('$p_B$', 0, 1)
 
             a_c = pm.Bernoulli('$A_C$', p=p_a, observed=a_obs_c)
             a_c = pm.Bernoulli('$B_C$', p=p_b, observed=b_obs_c)
