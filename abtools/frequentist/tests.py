@@ -126,11 +126,9 @@ class ZTest(BaseTest):
         return 2 * (1 - sp.stats.norm.cdf(abs(self.statistic)))
 
     def compute_confidence_intervals(self, a, b):
+        self.significance = max(2*sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
+                                (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
         return self.ci(a), self.ci(b)
-
-    def significance(self, a, b):
-        return max(2 * sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
-                   (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
 
 
 class TTest(BaseTest):
