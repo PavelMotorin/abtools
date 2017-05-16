@@ -59,7 +59,3 @@ class BaseTest(object):
               % (('not ' * (1 * (not self.sign)) + 'rejected'), self.alpha))
 
         print(self.result)
-
-    def significance(self):
-        """Return test's result and its significance probability"""
-        return 1 - self.p_value, self.result
