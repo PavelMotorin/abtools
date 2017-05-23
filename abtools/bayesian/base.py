@@ -111,4 +111,5 @@ class BaseModel(object):
         return pm.df_summary(self.trace)
 
     def sample_ppc(self):
-        self.posterior = pm.sample_ppc(self.trace)
+        with self.model:
+            self.posterior = pm.sample_ppc(self.trace)
