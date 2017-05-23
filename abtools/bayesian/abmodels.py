@@ -62,8 +62,8 @@ class WaldABModel(BaseModel):
         a_obs = np.array(a)
         b_obs = np.array(b)
 
-        m = np.mean(a_obs.mean(), b_obs.mean())
-        v = np.mean(a_obs.var(), b_obs.var())
+        m = np.mean([a_obs.mean(), b_obs.mean()])
+        v = np.mean([a_obs.var(), b_obs.var()])
         x_max = max(a_obs.max(), b_obs.max())
 
         with self.model:
