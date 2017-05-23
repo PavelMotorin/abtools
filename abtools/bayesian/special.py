@@ -193,6 +193,6 @@ class LognormalARPUABModel(BaseModel):
             [
                 '$p_A$', '$p_B$',
                 '$\\mu_A$', '$\\mu_B$',
-                '$A_{ARPU}$', '$A_{ARPU}$'
+                '$A_{ARPU}$', '$B_{ARPU}$'
             ]
         )

@@ -6,7 +6,7 @@ import pymc3 as pm
 class BaseModel(object):
     """
     Base model class
-    
+
     Prameters
     ---------
     data : dict
@@ -15,7 +15,7 @@ class BaseModel(object):
         Name of a model
     auto_init : bool
         Perform of not automatic initialization for a model
-    
+
     """
     def __init__(self, a, b=None, auto_init=True):
 
@@ -72,7 +72,6 @@ class BaseModel(object):
             Number of traces that will be sampled in parallel
         sample_ppc : bool
             Sample (or not) posterior predictive samples for a model.
-
         """
 
         if self.auto_init:
@@ -94,6 +93,8 @@ class BaseModel(object):
             if sample_ppc:
                 self.posterior = pm.sample_ppc(self.trace)
 
+        return self
+
     def burn_in(self, burn_in, thin=1):
         self.trace = self.trace[int(len(self.trace) * burn_in)::thin]
         print('%d samples left' % len(self.trace))
@@ -108,3 +109,6 @@ class BaseModel(object):
 
     def summary(self):
         return pm.df_summary(self.trace)
+
+    def sample_ppc(self):
+        self.posterior = pm.sample_ppc(self.trace)
