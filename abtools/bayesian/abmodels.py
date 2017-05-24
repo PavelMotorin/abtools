@@ -75,7 +75,7 @@ class WaldABModel(BaseModel):
             mu_b = pm.Gamma('$\\mu_B$', mu=m, sd=2*v**(1/2))
 
             a = pm.Wald('$A$', mu=mu_a, lam=lam_a, observed=a_obs)
-            b = pm.Wald('$B$', mu=mu_b, lam=lam_b, observed=a_obs)
+            b = pm.Wald('$B$', mu=mu_b, lam=lam_b, observed=b_obs)
 
             a_var = pm.Deterministic('$A_{\\sigma^2}$', (mu_a**3/lam_a))
             b_var = pm.Deterministic('$B_{\\sigma^2}$', (mu_b**3/lam_b))
