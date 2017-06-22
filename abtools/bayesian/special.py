@@ -5,16 +5,9 @@ import pymc3 as pm
 from .base import BaseModel
 
 
-__all__ = [
-    'WaldARPUABModel',
-    'LognormalARPUABModel'
-]
-
-
 class WaldARPUABModel(BaseModel):
     """
-    ARPU = C * ARPPU where C with Binary likelihood,
-    ARPPU with Inverse Gaussian (Wald)
+    
     """
     def build_model(self, a, b):
 

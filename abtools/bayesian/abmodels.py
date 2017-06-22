@@ -6,13 +6,6 @@ import pymc3 as pm
 from .base import BaseModel
 
 
-__all__ = [
-    'BinaryABModel',
-    'WaldABModel',
-    'LognormalABModel',
-]
-
-
 class BinaryABModel(BaseModel):
     """
     Binary model with Bernoulli likelihood
@@ -54,9 +47,36 @@ class BinaryABModel(BaseModel):
 
 
 class WaldABModel(BaseModel):
+    r"""
+    A/B model with Inverse Gaussian (Wald) likelihoods.
+
+    Model for comparing posterior means of two heavy-tail distributed groups.
+        A ~ IG(\mu_a, \lambda_a)
+        B ~ IG(\mu_b, \lambda_b)
+    where \mu is Gamma distributed and \lambda is Uniform distributed.
+
+    Parameters
+    ----------
+    data : dict
+        Dictionary with named arrays of observed values. Must contains
+        following keys:
+        - A, B - non-zero continuous observations
+
+    Examples
+    --------
+    Simple usage example with artificial data:
+
+    >>> from scipy.stats import lognorm
+    >>> from abtools.bayesian import WaldABModel
+    >>> a_rev = lognorm.rvs(1.03, size=1000)
+    >>> b_rev = lognorm.rvs(1.05, size=1000)
+    >>> data = {'A': a, 'B': b}
+    >>> model = WaldABModel(data)
+    >>> model.fit()
+    >>> model.summary()
+
     """
-    Heavy Tailed model with Inverse Gaussian (Wald) likelihood
-    """
+
     def build_model(self, a, b):
 
         a_obs = np.array(a)
@@ -101,15 +121,20 @@ class WaldABModel(BaseModel):
         return self.plot_result(['$\\mu_A$', '$\\mu_B$'])
 
 
-
 class LognormalABModel(BaseModel):
-    """
-    A/B model with log-Normal likelihood.
+    r"""
+    A/B model with log-Normal likelihoods.
 
+    Model for comparing posterior means of two heavy-tail distributed groups.
+    A ~ logN(\mu_a, \tau_a)
+    B ~ logN(\mu_b, \tau_b)
+    where \mu is Normal distributed and \tau is Gamma distributed according to
+    conjurate priors for log-Normal distribution.
+
+    This model is most stable to outliers and small data size.
 
     Parameters
     ----------
-
     data : dict
         Dictionary with named arrays of observed values. Must contains
         following keys:
@@ -117,23 +142,22 @@ class LognormalABModel(BaseModel):
 
     Examples
     --------
-
     Simple usage example with artificial data:
 
     >>> from scipy.stats import lognorm
-    >>> from abtools.bayesian import LognormalARPUABModel
+    >>> from abtools.bayesian import LognormalABModel
     >>> a_rev = lognorm.rvs(1.03, size=1000)
     >>> b_rev = lognorm.rvs(1.05, size=1000)
     >>> data = {'A': a, 'B': b}
     >>> model = LognormalABModel(data)
     >>> model.fit()
     >>> model.summary()
-    """
-    def build_model(self, a, b):
 
+    """
+
+    def build_model(self, a, b):
         a_obs, b_obs = np.array(a), np.array(b)
 
-        # test value to make optimization more easy and speed up convergence
         m = (a_obs.mean() + b_obs.mean()) / 2
         v = (a_obs.var() + a_obs.var()) / 2
 
