@@ -7,8 +7,12 @@ from .base import BaseModel
 
 
 class BinaryABModel(BaseModel):
-    """
-    Binary model with Bernoulli likelihood
+    r"""
+    Binary model with Bernoulli likelihood.
+
+    A ~ Bernoulli(\p_a) where \p_a ~ U(0, 1)
+    B ~ Bernoulli(\p_b) where \p_b ~ U(0, 1)
+
     """
 
     def build_model(self, a, b):
