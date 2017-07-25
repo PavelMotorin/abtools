@@ -32,11 +32,7 @@ class ABtest(object):
             model.fit(samples=self.samples)
 
         self.deltas = [
-            (
-                self.models[b].trace -
-                self.models[a].trace,
-                (a, b)
-            )
+            (self.models[b].trace - self.models[a].trace, (a, b))
             for a, b in combinations(sorted(self.models.keys()), 2)
         ]
 
