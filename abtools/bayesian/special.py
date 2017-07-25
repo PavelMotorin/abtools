@@ -92,7 +92,7 @@ class LognormalARPUABModel(BaseModel):
         Dictionary with named arrays of observed values. Must contains
         following keys:
         - A_rev, B_rev - non-zero revenue continuous observations
-        - A_conv, B_conv - conversion binary [0, 1] observations
+        - A_conv, B_conv - conversion Bernoulli [0, 1] observations
 
     Examples
     --------

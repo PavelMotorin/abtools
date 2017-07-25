@@ -7,98 +7,66 @@ from .base import BaseModel
 
 
 __all__ = [
-    'BinaryModel',
-    'WaldModel',
+    'BernoulliModel',
+    # 'WaldModel',
     'LognormalModel'
 ]
 
 
-class BinaryModel(BaseModel):
+class BernoulliModel(BaseModel):
     """
-    Binary model with Bernoulli likelihood
+    Bernoulli model with Bernoulli likelihood
     """
+    estimated_var = 'p'
+
     def build_model(self, x_obs):
 
         x_obs = np.array(x_obs)
 
         with self.model:
-            p = pm.Uniform('$p$', 0, 1)
-            x = pm.Bernoulli('$x$', p=p, observed=x_obs)
-
-    def plot_params(self):
-        return super(BinaryModel, self).plot_result(
-            ['$p$']
-        )
-
-
-class WaldModel(BaseModel):
-    """
-    Heavy Tailed model with Inverse Gaussian (Wald) likelihood
-    """
-    def build_model(self, X_obs, lower=.01, upper=1000, auto_init=True):
-
-        super(WaldModel, self).__init__(
-            'Heavy Tailed Inverse Gaussian A/B model',
-            auto_init
-        )
-
-        X_obs = np.array(X_obs)
-
-        mu_0 = np.mean(X_obs)
-        sigma_0 = np.std(X_obs) * 10
-
-        with self.model:
-
-            alpha = pm.Uniform('$\\alpha$', lower=lower, upper=upper)
-            lam = pm.Exponential('$\\lambda$', lam=alpha)
-            mu = pm.Gamma('$\\mu$', mu=mu_0, sd=sigma_0)
-
-            X = pm.Wald('$X$', mu=mu, lam=lam, observed=X_obs)
-
-            variance = pm.Deterministic('$\\sigma^2$', (mu**3/lam))
-
-    def plot_params(self):
-        return super(WaldModel, self).plot_result(
-            [
-                '$\\mu$', '$\\lam$', '$\\alpha$'
-            ]
-        )
+            p = pm.Uniform('p', 0, 1)
+            x = pm.Bernoulli('x', p=p, observed=x_obs)
 
 
 class LognormalModel(BaseModel):
+    r"""
+    Model with log-Normal likelihood.
+
+    Model heavy-tail distributed data.
+    x ~ logN(\mu, \tau)
+    where \mu is Normal distributed and \tau is Gamma distributed according to
+    conjurate priors for log-Normal distribution.
+
+    This model is most stable to outliers and small data size.
+
+    Parameters
+    ----------
+
+    Examples
+    --------
+    Simple usage example with artificial data:
+
     """
-    Heavy Tailed model with Log Normal likelihood
-    """
-    def __init__(self, X_obs, lower=.01, upper=1000, auto_init=True):
+    estimated_var = 'm'
 
-        super(LognormalModel, self).__init__(
-            'Heavy Tailed Log Normal A/B model',
-            auto_init
-        )
+    def build_model(self, x):
 
-        X_obs = np.array(X_obs)
+        x_obs = np.array(x)
 
-        mu_0 = np.mean(np.log(X_obs))
-        sigma_0 = np.std(np.log(X_obs)) * 10
+        m = x_obs.mean()
+        v = x_obs.var()
+
+        init_mu = np.log(m / np.sqrt(1 + v / (m ** 2)))
+        init_tau = 1 / np.log(1 + v / (m ** 2))
 
         with self.model:
 
-            alpha = pm.Uniform('$\\alpha$', lower=lower, upper=upper)
-            beta = pm.Uniform('$\\beta$', lower=lower, upper=upper)
-            tau = pm.Gamma('$\\tau$', alpha=alpha, beta=beta)
-            mu_l = pm.Gamma('$\\mu_{ln(X)}$', mu=mu_0, sd=sigma_0)
+            tau = pm.Gamma('tau', mu=init_tau, sd=init_tau ** (-2) * 2)
+            mu = pm.Normal('mu', init_mu, init_tau ** (-2) * 2)
 
-            X = pm.Lognormal('$X$', mu=mu_l, tau=tau, observed=X_obs)
+            x = pm.Lognormal('x', mu=mu, tau=tau, observed=x_obs)
 
-            mu = pm.Deterministic('$\\mu$', np.exp(mu_l+1/(2 * tau)))
-            variance = pm.Deterministic(
-                '\\sigma^2$',
-                (np.exp(1/tau - 1) * np.exp(2*mu_l - 1/tau))
-            )
+            m = pm.Deterministic('m', np.exp(mu + 1/(2 * tau)))
 
-    def plot_params(self):
-        return super(LognormalModel, self).plot_result(
-            [
-                '$\\mu$', '$\\sigma^2$'
-            ]
-        )
+            var = pm.Deterministic('var', (np.exp(1/tau - 1) *
+                                           np.exp(2*mu - 1/tau)))

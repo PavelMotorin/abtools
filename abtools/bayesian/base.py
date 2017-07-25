@@ -17,37 +17,15 @@ class BaseModel(object):
         Perform of not automatic initialization for a model
 
     """
-    def __init__(self, a, b=None, auto_init=True):
+    def __init__(self, a):
         self.model = pm.Model()
-        self.auto_init = auto_init
-        self.build_model(a, b)
+        self.build_model(a)
 
-    def build_model(self, a, b):
+    def build_model(self, a):
         """Build model with likelihoods and priors."""
         raise NotImplementedError
 
-    def init_model(self, init, n_init=10000):
-        """
-        Perform initialization of model with ADVI or MAP.
-
-        Set model starting values (means) after initialization.
-
-        Parameters
-        ----------
-        init : str
-            Name of pymc3 initialization method
-        n_init : int
-            Number of iterations
-
-        """
-        with self.model:
-            if init.upper() == 'ADVI':
-                self.means, self.stds, _ = pm.variational.advi(n=n_init)
-            elif init.upper() == 'MAP':
-                self.means = pm.find_MAP()
-
-    def fit(self, step=pm.Metropolis, init='MAP', samples=10000,
-            burn_in=0.25, thin=1, n_init=10000, n_jobs=1, sample_ppc=False):
+    def fit(self, samples=10000, burn_in=0.25, thin=1, n_jobs=1):
         """
         Inference button.
 
@@ -76,44 +54,23 @@ class BaseModel(object):
             Sample (or not) posterior predictive samples for a model.
 
         """
-        if self.auto_init:
-            self.init_model(init, n_init)
-        else:
-            self.means = None
+
 
         with self.model:
 
-            step = step()
-
             trace = pm.sample(
                 draws=samples,
-                step=step,
+                step=pm.Metropolis(),
                 njobs=n_jobs,
-                start=self.means
+                start=pm.find_MAP()
             )
             self.trace = trace[int(samples * burn_in)::thin]
-            if sample_ppc:
-                self.sample_ppc()
+
 
         return self
 
-    def burn_in(self, burn_in, thin=1):
-        """
-        Perform thinning and burn-in for sampled trace.
-
-        Parameters
-        ----------
-        burn_in : float
-            Percentage of values that will be discarded in final trace.
-            Actually drops samples from trace to avoid random-walk effect.
-            Value 0.05 burns 5% at beginning of the trace.
-        thin : int
-            Thinning rate. With value 5 drops every fifth sample from trace to
-            avoid autocorrelation problem.
-
-        """
-        self.trace = self.trace[int(len(self.trace) * burn_in)::thin]
-        print('%d samples left' % len(self.trace))
+    def estimated_var_trace(self):
+        return self.trace[self.estimated_var]
 
     def plot_result(self, varnames, ref_val=None):
         """
@@ -133,10 +90,6 @@ class BaseModel(object):
             color='#87ceeb',
             ref_val=ref_val
         )
-
-    def summary(self):
-        """Show models summary as pandas DataFrame."""
-        return pm.df_summary(self.trace)
 
     def sample_ppc(self):
         """Sample posterior predictive distributions."""

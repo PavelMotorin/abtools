@@ -2,6 +2,7 @@
 """LAL."""
 import numpy as np
 import scipy as sp
+import scipy.stats
 import matplotlib.pyplot as plt
 
 from tqdm import tqdm

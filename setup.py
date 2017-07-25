@@ -33,5 +33,5 @@ setup(
     keywords='bayesian estimation A/B testing',
 
     packages=find_packages(),
-    install_requires=['numpy', 'scipy', 'pymc3', 'matplotlib'],
+    #install_requires=['numpy', 'scipy', 'pymc3', 'matplotlib'],
 )
