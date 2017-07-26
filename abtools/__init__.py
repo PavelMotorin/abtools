@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 
-from .abmodels import ABtest
-from .models import *
+from .core.abtest import *
+from .core.models import *
