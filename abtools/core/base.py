@@ -15,9 +15,6 @@ class BaseModel:
     def _rvs(self, samples):
         raise NotImplementedError()
 
-    def fit(self, samples=100000):
-        self.trace = self._rvs(samples)
-
 
 class StatTest:
     def __init__(self, a, b):

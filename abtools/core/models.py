@@ -3,6 +3,8 @@
 import numpy as np
 import scipy
 
+from scipy.stats import norm, invgamma, lognorm, beta
+
 from .base import BaseModel
 
 
@@ -23,7 +25,7 @@ class BernoulliModel(BaseModel):
         self.beta = len(x) - self.alpha + 0.5
 
     def _rvs(self, samples):
-        return scipy.stats.beta.rvs(self.alpha, self.beta, size=samples)
+        return beta.rvs(self.alpha, self.beta, size=samples)
 
 
 class NormalModel(BaseModel):
@@ -32,7 +34,7 @@ class NormalModel(BaseModel):
         self.sigma = x.std() / np.sqrt(len(x))
 
     def _rvs(self, samples):
-        return scipy.stats.norm.rvs(self.mu, self.sigma, size=samples)
+        return norm.rvs(self.mu, self.sigma, size=samples)
 
 
 class LognormalModel(BaseModel):
@@ -46,9 +48,15 @@ class LognormalModel(BaseModel):
         self.var__beta = self.var__alpha * std**2
 
     def _rvs(self, samples):
-        mu = scipy.stats.norm.rvs(self.mu__mu, self.mu__sigma, size=samples)
-        var = scipy.stats.invgamma.rvs(self.var__alpha, scale=self.var__beta, size=samples)
+        mu = norm.rvs(self.mu__mu, self.mu__sigma, size=samples)
+        var = invgamma.rvs(self.var__alpha, scale=self.var__beta, size=samples)
         return np.exp(mu + var / 2)
+
+    def sample_ppc(self, samples):
+        mu = np.mean(norm.rvs(self.mu__mu, self.mu__sigma, size=samples))
+        var = np.mean(invgamma.rvs(self.var__alpha, scale=self.var__beta, size=samples))
+
+        return np.random.lognormal(mean=mu, sigma=var ** (1 / 2), size=samples)
 
 
 class ARPUModel(BaseModel):

@@ -37,18 +37,19 @@ class ABtest(object):
         self.alpha = alpha
         self.samples = samples
 
-    def estimate(self):
+    def test_all(self):
 
-        for model in self.models.values():
-            model.fit(samples=self.samples)
+        # for model in self.models.values():
+        #     model.fit(samples=self.samples)
 
         self.deltas = [
-            (self.models[b].trace - self.models[a].trace, (a, b))
+            (self.models[b].rvs(self.samples) -
+             self.models[a].rvs(self.samples), (a, b))
             for a, b in combinations(sorted(self.models.keys()), 2)
         ]
 
         self.means = np.array([
-            (name, np.mean(self.models[name].trace))
+            (name, np.mean(self.models[name].rvs(self.samples)))
             for name in self.models
         ])
 
