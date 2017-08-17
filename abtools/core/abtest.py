@@ -9,8 +9,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from .base import StatTest
-
-from ..plotting import CLRS_LT, CLRS_DK
+from .model_selection import naive_model_selector
+# from ..plotting import CLRS_LT, CLRS_DK
 
 
 __all__ = [
@@ -28,7 +28,7 @@ class ABtest(object):
 
     Class.
     """
-    def __init__(self, model, groups, samples=100, alpha=0.05):
+    def __init__(self, groups, model=naive_model_selector, samples=5000, alpha=0.05):
         print('ABtest for %d groups' % len(groups))
         self.models = {
             'group%d' % (i + 1): model(group)
@@ -36,6 +36,9 @@ class ABtest(object):
         }
         self.alpha = alpha
         self.samples = samples
+
+    def test(self):
+        raise NotImplementedError
 
     def test_all(self):
 

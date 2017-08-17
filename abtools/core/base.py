@@ -5,7 +5,7 @@ import numpy as np
 from math import sqrt
 
 
-class BaseModel:
+class BaseModel(object):
     def __init__(self, x):
         raise NotImplementedError()
 
@@ -16,7 +16,7 @@ class BaseModel:
         raise NotImplementedError()
 
 
-class StatTest:
+class StatTest(object):
     def __init__(self, a, b):
         raise NotImplementedError()
 

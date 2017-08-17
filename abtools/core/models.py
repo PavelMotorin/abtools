@@ -11,7 +11,8 @@ from .base import BaseModel
 __all__ = [
     'BernoulliModel',
     'LognormalModel',
-    'ARPUModel'
+    'ARPUModel',
+    'NormalModel'
 ]
 
 
