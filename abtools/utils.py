@@ -5,7 +5,7 @@ from scipy.stats.kde import gaussian_kde
 from scipy.stats import norm
 
 
-def KL(a, b, normalize=True):
+def kl_divergence(a, b, normalize=True):
     """
     Compute K-L divergence for two arrays of values.
 

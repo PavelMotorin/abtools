@@ -5,14 +5,32 @@ import numpy as np
 from math import sqrt
 
 
-class BaseModel(object):
-    def __init__(self, x):
+class Distribution(object):
+    def __init__(self, x, prior, k):
         raise NotImplementedError()
 
     def rvs(self, samples=100000):
         return self._rvs(samples)
 
     def _rvs(self, samples):
+        raise NotImplementedError()
+
+    def mean(self):
+        return self._mean()
+
+    def _mean(self):
+        raise NotImplementedError()
+
+    def sample_ppc(self, samples):
+        return self._sample_ppc(samples)
+
+    def _sample_ppc(self, samples):
+        raise NotImplementedError()
+
+    def from_stats(*args, **kwargs):
+        return self._from_stats()
+
+    def _from_stats(*args, **kwargs):
         raise NotImplementedError()
 
 
