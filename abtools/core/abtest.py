@@ -28,10 +28,10 @@ class ABtest(object):
 
     Class.
     """
-    def __init__(self, groups, model=naive_model_selector, samples=5000, alpha=0.05):
+    def __init__(self, groups, model=naive_model_selector, samples=5000, alpha=0.05, prior_kwargs=None):
         print('ABtest for %d groups' % len(groups))
         self.models = {
-            'group%d' % (i + 1): model(group)
+            'group%d' % (i + 1): model(group, **prior_kwargs)
             for i, group in enumerate(groups)
         }
         self.alpha = alpha

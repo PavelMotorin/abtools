@@ -17,47 +17,37 @@ __all__ = [
 
 
 class BernoulliPrior(Distribution):
-    def __init__(self, x=None):
-        if x:
+    def __init__(self, x=None, alpha=None, beta=None):
+        if x is not None:
             self.mean = x.mean()
             self.var = x.var()
-
-    def from_stats(self, alpha, beta):
-        self.mean = alpha / (alpha + beta)
-        self.var = self.mean * (1 - self.mean)
-        return self
+        elif alpha is not None and beta is not None:
+            self.mean = alpha / (alpha + beta)
+            self.var = self.mean * (1 - self.mean)
 
 class LognormalPrior(Distribution):
-    def __init__(self, x=None):
-        if x:
+    def __init__(self, x=None, mu=None, std=None):
+        if x is not None:
             log_x = np.log(x)
             self.mean = log_x.mean()
             self.tau = 1 / log_x.var()
+        elif mu is not None and std is not None:
+            self.mean = mu
+            self.tau = 1 / (std ** 2)
 
-    def from_stats(self, mean, tau):
-        self.mean = mean
-        self.tau = tau
-        return self
 
 class BernoulliModel(Distribution):
-    def __init__(self, x=None, prior=None, k=20):
-        if x:
+    def __init__(self, x=None, prior=None, k=20, alpha=None, beta=None):
+        if x is not None:
             self.alpha = x.sum() + 0.5
             self.beta = len(x) - x.sum() + 0.5
-
-            if prior:
-                self.alpha += k * prior.mean
-                self.beta += k * (1 - prior.mean)
-
-    def from_stats(self, alpha, beta, prior=None, k=20):
-        self.alpha = alpha + 0.5
-        self.beta = beta + 0.5
+        elif alpha is not None and beta is not None:
+            self.alpha = alpha + 0.5
+            self.beta = beta + 0.5
 
         if prior:
             self.alpha += k * prior.mean
             self.beta += k * (1 - prior.mean)
-
-        return self
 
     def _rvs(self, samples):
         return beta.rvs(self.alpha, self.beta, size=samples)
@@ -72,16 +62,13 @@ class BernoulliModel(Distribution):
 class NormalModel(Distribution):
     """
     """
-    def __init__(self, x=None):
-        if x:
+    def __init__(self, x=None, mu=None, std=None, n=None):
+        if x is not None:
             self.mu = x.mean()
             self.sigma = x.std() / np.sqrt(len(x))
-
-    def from_stats(self, mu, sigma, n):
-        self.mu = mu
-        self.sigma = sigma / n
-
-        return self
+        elif mu is not None and std is not None:
+            self.mu = mu
+            self.sigma = std / n
 
     def _rvs(self, samples):
         return norm.rvs(self.mu, self.sigma, size=samples)
@@ -95,52 +82,27 @@ class NormalModel(Distribution):
 class LognormalModel(Distribution):
     """
     """
-    def __init__(self, x, prior=None, k=20):
-        log_x = np.log(x)
+    def __init__(self, x=None, prior=None, k=20, mu=None, std=None, n=None):
 
-        n = len(log_x)
-
-        if n > 0:
+        if x is not None:
+            log_x = np.log(x)
+            n = len(log_x)
+            var = log_x.var()
             mean = log_x.mean()
-            if log_x.var() > 0:
-                tau = 1 / log_x.var()
+
+            if var > 0:
+                tau = 1 / var
             else:
                 tau = 0
-        else:
-            mean = 0
-            tau = 0
+
+        elif mu is not None and std is not None and n is not None:
+            mean = mu
+            if std > 0:
+                tau = 1 / std ** 2
+            else:
+                tau = 0
 
         if prior is None:
-            prior_mean = 0
-            prior_tau = 0
-            k = 0
-        else:
-            prior_mean = prior.mean
-            prior_tau = prior.tau
-
-        self.mu__mu = (k * prior_tau * prior_mean + n * tau * mean) / \
-                                                    (k * prior_tau + n * tau)
-        self.mu__sigma = 1 / (k * prior_tau + n * tau)
-
-        self.var__alpha = (k + n) / 2
-        self.var__beta = 0
-        if prior_tau > 0:
-            self.var__beta += k / 2 / prior_tau
-        if tau > 0:
-            self.var__beta += n / 2 / tau
-
-    def from_stats(self, mu, std, n, prior=None, k=20):
-        if n > 0:
-            mean = mu
-            if std ** 2 > 0:
-                tau = 1 / (std ** 2)
-            else:
-                tau = 0
-        else:
-            mean = 0
-            tau = 0
-
-        if not prior:
             prior_mean = 0
             prior_tau = 0
             k = 0
@@ -177,39 +139,36 @@ class LognormalModel(Distribution):
 
 
 class ARPUPrior(Distribution):
-    def __init__(self, x):
-        self.bernoulli_prior = BernoulliPrior((x > 0) * 1)
-        self.ARPPU_prior = LognormalPrior(x[x > 0])
-
-    def from_stats(self, mu, std, alpha, n):
-        self.bernoulli_prior = BernoulliPrior().from_stats(alpha, n - alpha)
-        self.ARPPU_prior = LognormalPrior().from_stats(mu, std, alpha)
+    def __init__(self, x=None, mu=None, std=None, alpha=None, n=None):
+        self.bernoulli_prior = BernoulliPrior(
+                x=(x > 0) * 1 if x is not None else None,
+                alpha=alpha,
+                beta=n - alpha
+            )
+        self.ARPPU_prior = LognormalPrior(
+                x=x[x > 0] if x is not None else None,
+                mu=mu,
+                std=std,
+                alpha=alpha
+            )
 
 class ARPUModel(Distribution):
     """
     """
-    def __init__(self, x, prior=None, k1=20, k2=20):
-        if prior:
-            b_p = prior.bernoulli_prior
-            l_p = prior.ARPPU_prior
-            self.conversion_model = BernoulliModel((x > 0) * 1, prior=b_p, k=k1)
-            self.ARPPU_model = LognormalModel(x[x > 0], prior=l_p, k=k2)
-        else:
-            self.conversion_model = BernoulliModel((x > 0) * 1, prior=None, k=k1)
-            self.ARPPU_model = LognormalModel(x[x > 0], prior=None, k=k2)
-
-    def from_stats(self, mu, std, alpha, n, prior=None, k1=20, k2=20):
-
+    def __init__(self, x=None, prior=None, k1=20, k2=20, mu=None, std=None, alpha=None, n=None):
         self.conversion_model = BernoulliModel(
-                alpha,
-                n - alpha,
+                x=(x > 0) * 1 if x is not None else None,
+                alpha=alpha,
+                beta=n - alpha,
                 prior=prior.bernoulli_prior if prior is not None else None,
                 k=k1
             )
         self.ARPPU_model = LognormalModel(
-                mu, 
-                std,
-                alpha,
+                x=x[x > 0] if x is not None else None,
+                mu=mu,
+                std=std,
+                alpha=alpha,
+                n=n,
                 prior=prior.ARPPU_prior if prior is not None else None,
                 k=k2
             )
