@@ -5,14 +5,15 @@ import numpy as np
 from scipy.stats import normaltest
 from numpy.random import choice
 
-from .models import BernoulliModel, LognormalModel, ARPUModel, NormalModel
+from .models import BLModel
+from .distributions import Bernoulli, Lognormal, Normal
 
 
 def naive_model_selector(x):
     """
     Select model by simple rule.
 
-    Choose between BernoulliModel, LognormalModel and ARPU model,
+    Choose between BernoulliModel, LognormalModel and BL model,
     if no one is suitable NormalModel is selected.
 
     Parameters
@@ -22,15 +23,15 @@ def naive_model_selector(x):
     Returns
     -------
         model:
-            Bayesian model inhereted from BaseModel
+            Bayesian model inhereted from Distribution
     """
     if set(x) == set([0, 1]):
-        model = BernoulliModel(x)
+        model = Bernoulli(x)
     elif Counter(x).most_common(1)[0][0] == 0 and np.min(x) >= 0:
-        model = ARPUModel(x)
+        model = BLModel(x)
     elif np.min(x) > 0:
-        model = LognormalModel(x)
+        model = Lognormal(x)
     else:
-        model = NormalModel(x)
+        model = Normal(x)
     print(model.__class__.__name__, 'automatically selected.')
     return model

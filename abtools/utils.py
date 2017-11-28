@@ -2,7 +2,6 @@
 import numpy as np
 
 from scipy.stats.kde import gaussian_kde
-from scipy.stats import norm
 
 
 def kl_divergence(a, b, normalize=True):
@@ -41,3 +40,11 @@ def kl_divergence(a, b, normalize=True):
         q = q/np.sum(q)
 
     return np.sum(np.where(p != 0, (p) * np.log(p / q), 0))
+
+
+def bl_mean(mu, std, alpha, n):
+    """Compute BL's expected value for a given stats."""
+    var__alpha = (alpha - 1) / 2
+    var__beta = var__alpha * std ** 2
+    var = var__beta / (var__alpha - 1)
+    return np.exp(mu + var / 2) * (alpha / n)

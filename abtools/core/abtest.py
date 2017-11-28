@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 from .base import StatTest
 from .model_selection import naive_model_selector
-# from ..plotting import CLRS_LT, CLRS_DK
+from ..plotting import CLRS_LT, CLRS_DK
 
 
 __all__ = [
@@ -28,10 +28,13 @@ class ABtest(object):
 
     Class.
     """
-    def __init__(self, groups, model=naive_model_selector, samples=5000, alpha=0.05, prior_kwargs=None):
+    def __init__(self, groups, model=naive_model_selector,
+                 samples=5000, alpha=0.05, prior=None):
+
         print('ABtest for %d groups' % len(groups))
+
         self.models = {
-            'group%d' % (i + 1): model(group)#, **prior_kwargs)
+            'group%d' % (i + 1): model(group)
             for i, group in enumerate(groups)
         }
         self.alpha = alpha
@@ -46,8 +49,7 @@ class ABtest(object):
         #     model.fit(samples=self.samples)
 
         self.deltas = [
-            (self.models[b].rvs(self.samples) -
-             self.models[a].rvs(self.samples), (a, b))
+            ((self.models[b] - self.models[a]).mean_rvs(self.samples), (a, b))
             for a, b in combinations(sorted(self.models.keys()), 2)
         ]
 
@@ -56,8 +58,8 @@ class ABtest(object):
             for name in self.models
         ])
 
-        best_ind = np.argmax([mean[0] for mean in self.means])
-        worst_ind = np.argmin([mean[0] for mean in self.means])
+        # best_ind = np.argmax([mean[0] for mean in self.means])
+        # worst_ind = np.argmin([mean[0] for mean in self.means])
 
         self.probabilities = [
             (np.mean(delta[0] < 0), np.mean(delta[0] > 0), delta[1])
@@ -206,7 +208,8 @@ class ZTest(StatTest):
 
 class BTest(StatTest):
     def __init__(self, a, b, model_name, random_size=100000):
-        self.diff = model_name(b).rvs(random_size) - model_name(a).rvs(random_size)
+        self.diff = model_name(b).rvs(random_size) - \
+                        model_name(a).rvs(random_size)
 
     def _probability(self):
         return (self.diff > 0).mean()
