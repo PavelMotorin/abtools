@@ -62,12 +62,20 @@ class Normal(Distribution):
     def __init__(self, x=None, mu=None, std=None, n=None, k=None):
         if x is not None:
             self.mu = x.mean()
+            self.std = x.std()
             self.sigma = x.std() / np.sqrt(len(x))
+            self.var = self.sigma ** 2
+            self.tau = 1 / self.var
         elif mu is not None and std is not None:
             self.mu = mu
-            self.sigma = std / n
+            self.std = std
+            self.sigma = std / np.sqrt(n)
+            self.var = self.sigma ** 2
+            self.tau = 1 / self.var
 
         self.n = n
+        self.var__alpha = (self.n - 1) / 2
+        self.var__beta = self.var__alpha / self.tau
         self.k = self._set_k(k)
 
         super(Normal, self).__init__()
@@ -80,6 +88,33 @@ class Normal(Distribution):
 
     def _rvs(self, samples):
         return norm.rvs(self.mu, self.sigma, size=samples)
+
+    def __rshift__(self, dist):
+        if not isinstance(dist, Normal):
+            raise TypeError
+
+        k1 = self.k if self.k is not None else self.n
+        k2 = dist.k if dist.k is not None else dist.n
+
+        mu__mu = ((k2 * dist.tau * dist.mu + k1 * self.tau * self.mu) /
+                  (k2 * dist.tau + k1 * self.tau))
+
+        var__alpha = (k1 + k2) / 2
+        var__beta = 0
+
+        if dist.tau > 0:
+            var__beta += k2 / 2 / dist.tau
+        if self.tau > 0:
+            var__beta += k1 / 2 / self.tau
+
+        mu = mu__mu
+        std = np.sqrt(var__beta / (var__alpha - 1))
+
+        child = Normal(mu=mu, std=std, n=k1 + k2)
+        child.var__alpha = var__alpha
+        child.var__beta = var__beta
+
+        return child
 
 
 class Lognormal(Distribution):
@@ -110,7 +145,7 @@ class Lognormal(Distribution):
             self.std = std
 
         self.mu__mu = self.mu
-        self.mu__sigma = 1 / (self.n * self.tau)
+        self.mu__sigma = 1 / np.sqrt(self.n * self.tau)
 
         self.var__alpha = (self.n - 1) / 2
         self.var__beta = self.var__alpha / self.tau
