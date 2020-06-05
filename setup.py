@@ -10,13 +10,13 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='abtools',
+    name='abtoaster',
     version='0.1.0',
 
     description='Tools for A/B test results estimation',
     long_description=long_description,
 
-    url='https://github.com/ivanbagaev/abtools',
+    url='https://github.com/ivanbagaev/abtoaster',
 
     author='Ivan Bagaev',
     author_email='ivan.bagaev1993@gmail.com',
@@ -29,8 +29,6 @@ setup(
         'License :: OSI Approved :: MIT License',
 
     ],
-
-    keywords='bayesian estimation A/B testing',
 
     packages=find_packages(),
     #install_requires=['numpy', 'scipy', 'pymc3', 'matplotlib'],
