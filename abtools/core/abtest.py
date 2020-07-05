@@ -28,7 +28,7 @@ class ABtest(object):
 
     Class.
     """
-    def __init__(self, groups, group_names = ['group1', 'group2'], model=naive_model_selector, samples=5000, alpha=0.05):
+    def __init__(self, groups, model=naive_model_selector, samples=5000, group_names = ['group1', 'group2'], alpha=0.05):
         print('ABtest for %d groups' % len(groups))
         self.models = {
             group_names[i]: model(group)
