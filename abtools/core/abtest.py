@@ -147,8 +147,25 @@ class PermutationTest(object):
 
     """
 
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, a, b, alpha=0.05):
+        a, b = np.array(a), np.array(b)
+        self.name = 'Base Test'
+        self.alpha = alpha
+        self.diff = b.mean() - a.mean()
+        self.statistic = self.compute_test_statistic(a, b)
+        self.critical = self.compute_critical(a, b)
+        self.p_value = self.compute_p_value(a, b)
+
+        self.sign = self.p_value <= self.alpha
+        self.confidence_intervals = self.compute_confidence_intervals(a, b)
+
+        if self.statistic > self.critical:
+            self.result = 'E(A) < E(B)'
+        elif self.statistic < -self.critical:
+            self.result = 'E(A) > E(B)'
+        else:
+            self.result = 'E(A) = E(B)'
+
 
     def compute_test_statistic(self, a, b):
         return self.diff
