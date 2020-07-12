@@ -12,6 +12,8 @@ from .base import StatTest
 from .model_selection import naive_model_selector
 # from ..plotting import CLRS_LT, CLRS_DK
 
+CLRS_LT = ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f']
+CLRS_DK = ['#2980b9', '#c0392b', '#27ae60', '#f1c40f']
 
 __all__ = [
     'ABtest',
