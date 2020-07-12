@@ -149,7 +149,7 @@ class PermutationTest(object):
 
     def __init__(self, a, b, alpha=0.05):
         a, b = np.array(a), np.array(b)
-        self.name = 'Base Test'
+        self.name = 'Permutation Test'
         self.alpha = alpha
         self.diff = b.mean() - a.mean()
         self.statistic = self.compute_test_statistic(a, b)
@@ -219,6 +219,17 @@ class ZTest(StatTest):
 
     def _probability(self):
         return scipy.stats.norm.cdf(0, -self.mu, self.sigma)
+    
+    def ci(self, x, alpha):
+        x = np.array(x)
+        m, se = np.mean(x), sp.stats.sem(x)
+        h = se * sp.stats.norm.ppf(1 - alpha / 2)
+        return m - h, m + h
+    
+    def compute_confidence_intervals(self, a, b):
+        self.significance = max(2*sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
+                                (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
+        return self.ci(a), self.ci(b)
 
 
 class BTest(StatTest):
@@ -227,3 +238,64 @@ class BTest(StatTest):
 
     def _probability(self):
         return (self.diff > 0).mean()
+
+    
+    
+class TTest(object):
+
+    def __init__(self, a, b, alpha=0.05):
+        """
+        Init.
+
+        dfg
+        """
+        a, b = np.array(a), np.array(b)
+        self.name = 'Student Test'
+        self.alpha = alpha
+        self.diff = b.mean() - a.mean()
+        self.statistic = self.compute_test_statistic(a, b)
+        self.critical = self.compute_critical(a, b)
+        self.p_value = self.compute_p_value(a, b)
+
+        self.sign = self.p_value <= self.alpha
+        self.confidence_intervals = self.compute_confidence_intervals(a, b)
+
+        if self.statistic > self.critical:
+            self.result = 'E(A) < E(B)'
+        elif self.statistic < -self.critical:
+            self.result = 'E(A) > E(B)'
+        else:
+            self.result = 'E(A) = E(B)'
+
+    
+    def ci(self, x):
+        x = np.array(x)
+        n = len(x)
+        m, se = np.mean(x), sp.stats.sem(x)
+        h = se * sp.stats.t.ppf(1-self.alpha/2, df=n-1)
+        return m-h, m+h
+
+    def compute_test_statistic(self, a, b):
+        a_mean = a.mean()
+        avar = a.var(ddof=1)
+        na = a.size
+        adf = na - 1
+
+        b_mean = b.mean()
+        bvar = b.var(ddof=1)
+        nb = b.size
+        bdf = nb - 1
+
+        t = ((b_mean - a_mean)) / np.sqrt(avar/na + bvar/nb)
+        self.df = ((avar/na + bvar/nb)**2 /
+                   (avar**2/(na**2*adf) + bvar**2/(nb**2*bdf)))
+        return t
+
+    def compute_critical(self, a, b):
+        return sp.stats.t.ppf(1 - self.alpha / 2, df=self.df)
+
+    def compute_p_value(self, a, b):
+        return 2 * sp.stats.t.cdf(-np.abs(self.statistic), df=self.df)
+
+    def compute_confidence_intervals(self, a, b):
+        return self.ci(a), self.ci(b)
