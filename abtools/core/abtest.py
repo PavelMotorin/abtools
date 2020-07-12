@@ -4,7 +4,7 @@ from itertools import combinations
 from tqdm import tqdm
 
 import numpy as np
-import scipy as sp
+import scipy
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -250,8 +250,8 @@ class StudentTest(object):
     def ci(self, x):
         x = np.array(x)
         n = len(x)
-        m, se = np.mean(x), sp.stats.sem(x)
-        h = se * sp.stats.t.ppf(1-self.alpha/2, df=n-1)
+        m, se = np.mean(x), scipy.stats.sem(x)
+        h = se * scipy.stats.t.ppf(1-self.alpha/2, df=n-1)
         return m-h, m+h
 
     def compute_test_statistic(self, a, b):
@@ -271,10 +271,10 @@ class StudentTest(object):
         return t
 
     def compute_critical(self, a, b):
-        return sp.stats.t.ppf(1 - self.alpha / 2, df=self.df)
+        return scipy.stats.t.ppf(1 - self.alpha / 2, df=self.df)
 
     def compute_p_value(self, a, b):
-        return 2 * sp.stats.t.cdf(-np.abs(self.statistic), df=self.df)
+        return 2 * scipy.stats.t.cdf(-np.abs(self.statistic), df=self.df)
 
     def compute_confidence_intervals(self, a, b):
         return self.ci(a), self.ci(b)
@@ -290,13 +290,13 @@ class ZTest(StatTest):
     
     def ci(self, x, alpha):
         x = np.array(x)
-        m, se = np.mean(x), sp.stats.sem(x)
-        h = se * sp.stats.norm.ppf(1 - alpha / 2)
+        m, se = np.mean(x), scipy.stats.sem(x)
+        h = se * scipy.stats.norm.ppf(1 - alpha / 2)
         return m - h, m + h
     
     def compute_confidence_intervals(self, a, b):
-        self.significance = max(2*sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
-                                (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
+        self.significance = max(2*scipy.stats.norm.cdf(abs(a.mean() - b.mean()) /
+                                (scipy.stats.sem(a) + scipy.stats.sem(b))) - 1, 0)
         return self.ci(a), self.ci(b)
 
 
