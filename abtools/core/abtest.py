@@ -30,12 +30,18 @@ class ABtest(object):
 
     Class.
     """
-    def __init__(self, groups, model=naive_model_selector, samples=5000, group_names = ['group1', 'group2'], alpha=0.05):
+    def __init__(self, groups, model=naive_model_selector, samples=5000, group_names = [], alpha=0.05):
         print('ABtest for %d groups' % len(groups))
-        self.models = {
-            group_names[i]: model(group)
-            for i, group in enumerate(groups)
-        }
+        if group_names == []:
+          self.models = {
+                'group%d' % (i + 1): model(group)
+                for i, group in enumerate(groups)
+            }
+        else:
+          self.models = {
+              group_names[i]: model(group)
+              for i, group in enumerate(groups)
+          }
         self.alpha = alpha
         self.samples = samples
 
