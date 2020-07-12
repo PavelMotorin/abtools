@@ -219,37 +219,8 @@ class PermutationTest(object):
         plt.title("Fisher's permutation test")
         plt.legend(bbox_to_anchor=(1.05, .65))
 
-
-class ZTest(StatTest):
-    def __init__(self, a, b):
-        self.mu = b.mean() - a.mean()
-        self.sigma = np.sqrt(a.std()**2 / len(a) + b.std()**2 / len(b))
-
-    def _probability(self):
-        return scipy.stats.norm.cdf(0, -self.mu, self.sigma)
-    
-    def ci(self, x, alpha):
-        x = np.array(x)
-        m, se = np.mean(x), sp.stats.sem(x)
-        h = se * sp.stats.norm.ppf(1 - alpha / 2)
-        return m - h, m + h
-    
-    def compute_confidence_intervals(self, a, b):
-        self.significance = max(2*sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
-                                (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
-        return self.ci(a), self.ci(b)
-
-
-class BTest(StatTest):
-    def __init__(self, a, b, model_name, random_size=100000):
-        self.diff = model_name(b).rvs(random_size) - model_name(a).rvs(random_size)
-
-    def _probability(self):
-        return (self.diff > 0).mean()
-
-    
-    
-class TTest(object):
+        
+class StudentTest(object):
 
     def __init__(self, a, b, alpha=0.05):
         """
@@ -307,3 +278,31 @@ class TTest(object):
 
     def compute_confidence_intervals(self, a, b):
         return self.ci(a), self.ci(b)
+
+
+class ZTest(StatTest):
+    def __init__(self, a, b):
+        self.mu = b.mean() - a.mean()
+        self.sigma = np.sqrt(a.std()**2 / len(a) + b.std()**2 / len(b))
+
+    def _probability(self):
+        return scipy.stats.norm.cdf(0, -self.mu, self.sigma)
+    
+    def ci(self, x, alpha):
+        x = np.array(x)
+        m, se = np.mean(x), sp.stats.sem(x)
+        h = se * sp.stats.norm.ppf(1 - alpha / 2)
+        return m - h, m + h
+    
+    def compute_confidence_intervals(self, a, b):
+        self.significance = max(2*sp.stats.norm.cdf(abs(a.mean() - b.mean()) /
+                                (sp.stats.sem(a) + sp.stats.sem(b))) - 1, 0)
+        return self.ci(a), self.ci(b)
+
+
+class BTest(StatTest):
+    def __init__(self, a, b, model_name, random_size=100000):
+        self.diff = model_name(b).rvs(random_size) - model_name(a).rvs(random_size)
+
+    def _probability(self):
+        return (self.diff > 0).mean()
