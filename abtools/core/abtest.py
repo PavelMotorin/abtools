@@ -281,17 +281,18 @@ class StudentTest(object):
 
 
 class ZTest(StatTest):
-    def __init__(self, a, b):
+    def __init__(self, a, b, alpha = 0.05):
         self.mu = b.mean() - a.mean()
         self.sigma = np.sqrt(a.std()**2 / len(a) + b.std()**2 / len(b))
+        self.alpha = alpha
 
     def _probability(self):
         return scipy.stats.norm.cdf(0, -self.mu, self.sigma)
     
-    def ci(self, x, alpha):
+    def ci(self, x):
         x = np.array(x)
         m, se = np.mean(x), scipy.stats.sem(x)
-        h = se * scipy.stats.norm.ppf(1 - alpha / 2)
+        h = se * scipy.stats.norm.ppf(1 - self.alpha / 2)
         return m - h, m + h
     
     def compute_confidence_intervals(self, a, b):
