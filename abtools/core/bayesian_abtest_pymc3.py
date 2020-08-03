@@ -7,7 +7,7 @@ plt.style.use('seaborn-darkgrid')
 
 class BayesianABtest(object):
     
-    def __init__(self, groups, models, n_samples=5000, group_names = [], alpha=0.05):
+    def __init__(self, groups, models, n_samples=5000, group_names = [], alpha=0.05, step = 'default', init = 'auto'):
         print('ABtest for %d groups' % len(groups))
         self.alpha = alpha
         self.n_samples = n_samples
@@ -22,7 +22,7 @@ class BayesianABtest(object):
               for i, group in enumerate(groups)
           }
         self.traces = [
-            self.models[name].sample(self.n_samples)
+            self.models[name].sample(self.n_samples, step = step, init = init)
             for name in self.models
         ]
         
