@@ -42,11 +42,6 @@ class BernoulliModelPymc3(object):
                 return pm.sample(n,
                     step=pm.HamiltonianMC(),
                     init = init)
-        elif step == 'sequential_mc':
-            with self.model:
-                return pm.sample(n,
-                    step=pm.SMC(),
-                    init = init)
         else:
             print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
         
@@ -113,11 +108,6 @@ class LognormalModelPymc3(object):
                 return pm.sample(n,
                     step=pm.HamiltonianMC(),
                     init = init)
-        elif step == 'sequential_mc':
-            with self.model:
-                return pm.sample(n,
-                    step=pm.SMC(),
-                    init = init)
         else:
             print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
                 
@@ -177,11 +167,6 @@ class WaldARPUModel(object):
             with self.model:
                 return pm.sample(n,
                     step=pm.HamiltonianMC(),
-                    init = init)
-        elif step == 'sequential_mc':
-            with self.model:
-                return pm.sample(n,
-                    step=pm.SMC(),
                     init = init)
         else:
             print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
@@ -281,11 +266,6 @@ class LognormalARPUModel(object):
             with self.model:
                 return pm.sample(n,
                     step=pm.HamiltonianMC(),
-                    init = init)
-        elif step == 'sequential_mc':
-            with self.model:
-                return pm.sample(n,
-                    step=pm.SMC(),
                     init = init)
         else:
             print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
