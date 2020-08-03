@@ -48,7 +48,7 @@ class BernoulliModelPymc3(object):
                     step=pm.SMC(),
                     init = init)
          else:
-            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
         
         
 class LognormalModelPymc3(object):
@@ -119,7 +119,7 @@ class LognormalModelPymc3(object):
                     step=pm.SMC(),
                     init = init)
          else:
-            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
                 
             
 class WaldARPUModel(object):
@@ -184,7 +184,7 @@ class WaldARPUModel(object):
                     step=pm.SMC(),
                     init = init)
          else:
-            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
                 
                 
 class LognormalARPUModel(object):
@@ -288,4 +288,4 @@ class LognormalARPUModel(object):
                     step=pm.SMC(),
                     init = init)
          else:
-            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
