@@ -26,12 +26,29 @@ class BernoulliModelPymc3(object):
             x = pm.Bernoulli('x', p=p, observed = x_obs)
 
             
-    def sample(self, n):
+    def sample(self, n, step = 'default',init = 'auto'):
         
-        with self.model:
-            return pm.sample(n,
-                step=pm.Metropolis(),
-                start=pm.find_MAP())
+        if step ==  'default':
+            with self.model:
+                return pm.sample(n,
+                    init = init)
+        elif step == 'metropolis':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.Metropolis(),
+                    init = init)
+        elif step == 'hamiltonian_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.HamiltonianMC(),
+                    init = init)
+         elif step == 'sequential_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.SMC(),
+                    init = init)
+         else:
+            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
         
         
 class LognormalModelPymc3(object):
@@ -80,12 +97,29 @@ class LognormalModelPymc3(object):
 
             
     
-    def sample(self, n):
+    def sample(self, n, step = 'default',init = 'auto'):
         
-        with self.model:
-            return pm.sample(n,
-                step=pm.Metropolis(),
-                start=pm.find_MAP())
+        if step ==  'default':
+            with self.model:
+                return pm.sample(n,
+                    init = init)
+        elif step == 'metropolis':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.Metropolis(),
+                    init = init)
+        elif step == 'hamiltonian_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.HamiltonianMC(),
+                    init = init)
+         elif step == 'sequential_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.SMC(),
+                    init = init)
+         else:
+            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
                 
             
 class WaldARPUModel(object):
@@ -128,12 +162,29 @@ class WaldARPUModel(object):
             a_var = pm.Deterministic('$\\sigma^2$', mu_a ** 3 / lam_a)
             
 
-    def sample(self, n):
+    def sample(self, n, step = 'default',init = 'auto'):
         
-        with self.model:
-            return pm.sample(n,
-                step=pm.Metropolis(),
-                start=pm.find_MAP())
+        if step ==  'default':
+            with self.model:
+                return pm.sample(n,
+                    init = init)
+        elif step == 'metropolis':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.Metropolis(),
+                    init = init)
+        elif step == 'hamiltonian_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.HamiltonianMC(),
+                    init = init)
+         elif step == 'sequential_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.SMC(),
+                    init = init)
+         else:
+            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
                 
                 
 class LognormalARPUModel(object):
@@ -215,10 +266,26 @@ class LognormalARPUModel(object):
             a_arpu = pm.Deterministic('$ARPU$', mu_a * p_a)
             
 
-    def sample(self, n=5000,init = 'auto'):
+    def sample(self, n, step = 'default',init = 'auto'):
         
-        with self.model:
-            return pm.sample(n,
-                step=pm.Metropolis(),
-                start=pm.find_MAP(),
-                            init = init)
+        if step ==  'default':
+            with self.model:
+                return pm.sample(n,
+                    init = init)
+        elif step == 'metropolis':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.Metropolis(),
+                    init = init)
+        elif step == 'hamiltonian_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.HamiltonianMC(),
+                    init = init)
+         elif step == 'sequential_mc':
+            with self.model:
+                return pm.sample(n,
+                    step=pm.SMC(),
+                    init = init)
+         else:
+            print('Error: step parameter should be ine of : (default, metropolis, hamiltonian_mc,s equential_mc)')
