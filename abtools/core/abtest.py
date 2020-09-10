@@ -299,8 +299,7 @@ Returns
         p_value : float
             Two-sided p-value.
         sign : bool
-            Rejected or not null hypotesis with given significance level.
-"""
+            Rejected or not null hypotesis with given significance level."""
 
     def __init__(self, a, b, alpha=0.05):
         self.mu = b.mean() - a.mean()
