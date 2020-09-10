@@ -11,11 +11,6 @@ class BernoulliModelPymc3(object):
     """
     estimated_var = 'p'
     
-
-#     def __init__(self, x):
-#         self.x_obs = np.array(x)
-#         self.model = pm.Model()
-    
     def __init__(self,x_obs):
 
         x_obs = np.array(x_obs)
@@ -26,7 +21,7 @@ class BernoulliModelPymc3(object):
             x = pm.Bernoulli('x', p=p, observed = x_obs)
 
             
-    def sample(self, n, step = 'default',init = 'auto'):
+    def sample(self, n, step='default',init='auto'):
         
         if step ==  'default':
             with self.model:
@@ -43,27 +38,17 @@ class BernoulliModelPymc3(object):
                     step=pm.HamiltonianMC(),
                     init = init)
         else:
-            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc)')
         
         
 class LognormalModelPymc3(object):
-    r"""
+    """
     Model with log-Normal likelihood.
-
     Model heavy-tail distributed data.
     x ~ logN(\mu, \tau)
     where \mu is Normal distributed and \tau is Gamma distributed according to
     conjurate priors for log-Normal distribution.
-
     This model is most stable to outliers and small data size.
-
-    Parameters
-    ----------
-
-    Examples
-    --------
-    Simple usage example with artificial data:
-
     """
     estimated_var = 'm'
 
@@ -92,7 +77,7 @@ class LognormalModelPymc3(object):
 
             
     
-    def sample(self, n, step = 'default',init = 'auto'):
+    def sample(self, n, step='default',init='auto'):
         
         if step ==  'default':
             with self.model:
@@ -109,20 +94,17 @@ class LognormalModelPymc3(object):
                     step=pm.HamiltonianMC(),
                     init = init)
         else:
-            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc)')
                 
             
 class WaldARPUModel(object):
     """
-    
+    Mixed A/B ARPU model with Wald likelihood for a revenue.
     """
     
     estimated_var = '$ARPU$'
     
     def __init__(self, a_obs):
-
-        #a_obs_r = a['revenue']
-        #a_obs_c = a['conversion']
 
         self.model = pm.Model()
         
@@ -152,7 +134,7 @@ class WaldARPUModel(object):
             a_var = pm.Deterministic('$\\sigma^2$', mu_a ** 3 / lam_a)
             
 
-    def sample(self, n, step = 'default',init = 'auto'):
+    def sample(self, n, step='default', init='auto'):
         
         if step ==  'default':
             with self.model:
@@ -169,33 +151,27 @@ class WaldARPUModel(object):
                     step=pm.HamiltonianMC(),
                     init = init)
         else:
-            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc)')
                 
                 
 class LognormalARPUModel(object):
     """
     Mixed A/B ARPU model with log-Normal likelihood for a revenue.
-
     ARPU model formalizes like follows ARPU = C * ARPPU,
     where C is conversion and ARPPU - expected value of revenue.
     In this model C has a Bernoulli likehood and Uniform prior for $p$, where
     $p$ is conversion probability.ARPPU has a log-Normal likelihood and also
     Uniform priors for $\mu$ and $\tau$.
-
     Parameters
     ----------
-
     data : dict
         Dictionary with named arrays of observed values. Must contains
         following keys:
         - A_rev, B_rev - non-zero revenue continuous observations
         - A_conv, B_conv - conversion Bernoulli [0, 1] observations
-
     Examples
     --------
-
     Simple usage example with artificial data:
-
     >>> from scipy.stats import bernoulli, lognorm
     >>> from abtools.bayesian import LognormalARPUABModel
     >>> a_conv = bernoulli.rvs(0.05, size=5000)
@@ -216,8 +192,7 @@ class LognormalARPUModel(object):
         Build ARPU model for compartion of two groups
         """
         # get data from given dict
-        #a_obs_r, b_obs_r = np.array(a['revenue']), np.array(b['revenue'])
-        #a_obs_c, b_obs_c = np.array(a['conversion']), np.array(b['conversion'])
+       
         self.model = pm.Model()
         a_obs = np.array(a_obs)
         a_obs_r = np.array(a_obs[a_obs > 0])
@@ -251,7 +226,7 @@ class LognormalARPUModel(object):
             a_arpu = pm.Deterministic('$ARPU$', mu_a * p_a)
             
 
-    def sample(self, n, step = 'default',init = 'auto'):
+    def sample(self, n, step='default',init='auto'):
         
         if step ==  'default':
             with self.model:
@@ -268,4 +243,4 @@ class LognormalARPUModel(object):
                     step=pm.HamiltonianMC(),
                     init = init)
         else:
-            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc,sequential_mc)')
+            print('Error: step parameter should be one of : (default, metropolis, hamiltonian_mc)')
