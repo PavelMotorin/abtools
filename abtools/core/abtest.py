@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 from .base import StatTest
 from .model_selection import naive_model_selector
-# from ..plotting import CLRS_LT, CLRS_DK
 
 CLRS_LT = ['#3498db', '#e74c3c', '#2ecc71', '#f1c40f']
 CLRS_DK = ['#2980b9', '#c0392b', '#27ae60', '#f1c40f']
@@ -27,12 +26,11 @@ __all__ = [
 class ABtest(object):
     """
     AB test class.
-
     Class.
     """
-    def __init__(self, groups, model=naive_model_selector, samples=5000, group_names = [], alpha=0.05):
+    def __init__(self, groups, model=naive_model_selector, samples=5000, group_names=None, alpha=0.05):
         print('ABtest for %d groups' % len(groups))
-        if group_names == []:
+        if group_names:
           self.models = {
                 'group%d' % (i + 1): model(group)
                 for i, group in enumerate(groups)
@@ -49,9 +47,6 @@ class ABtest(object):
         raise NotImplementedError
 
     def test_all(self):
-
-        # for model in self.models.values():
-        #     model.fit(samples=self.samples)
 
         self.deltas = [
             (self.models[b].rvs(self.samples) -
@@ -121,7 +116,6 @@ class ABtest(object):
 class PermutationTest(object):
     """
     Implementation of Fisher's permutation test.
-
     A Fisher's exact permutation test is a type of statistical significance
     test in which the distribution of the test statistic under the
     null hypothesis is obtained by calculating all possible values of the test
@@ -130,29 +124,24 @@ class PermutationTest(object):
     an experimental design is mirrored in the analysis of that design. If the
     labels are exchangeable under the null hypothesis, then the resulting tests
     yield exact significance levels.
-
     Parameters
     ----------
     a, b : {list, ndarray}
         Observed data for two groups, where a - control group,  b - test group.
     alpha : float
         Significance level.
-
     Returns
     -------
     p_value : float
         Two-sided p-value.
     sign : bool
         Rejected or not null hypotesis with given significance level.
-
     References
     ----------
     [1] - Fisher, R. A. (1935). The design of experiments. 1935.
     Oliver and Boyd, Edinburgh.
-
     [2] - Ernst, M. D. (2004). Permutation methods: basis for exact inference.
     Statistical Science, 19(4), 676-685
-
     """
 
     def __init__(self, a, b, alpha=0.05):
@@ -224,9 +213,23 @@ class StudentTest(object):
 
     def __init__(self, a, b, alpha=0.05):
         """
-        Init.
-
-        dfg
+        
+        Calculate the T-test for the means of two independent samples of scores. 
+        This is a two-sided test for the null hypothesis that 
+        2 independent samples have identical average (expected) values. 
+        This test assumes that the populations have identical variances by default.
+        Parameters
+        ----------
+        a, b : {list, ndarray}
+            Observed data for two groups, where a - control group,  b - test group.
+        alpha : float
+            Significance level.
+        Returns
+        -------
+        p_value : float
+            Two-sided p-value.
+        sign : bool
+            Rejected or not null hypotesis with given significance level.
         """
         a, b = np.array(a), np.array(b)
         self.name = 'Student Test'
@@ -281,7 +284,25 @@ class StudentTest(object):
 
 
 class ZTest(StatTest):
-    def __init__(self, a, b, alpha = 0.05):
+"""
+Test for mean based on normal distribution, one or two samples.
+In the case of two samples, the samples are assumed to be independent.
+Parameters
+        ----------
+        a, b : {list, ndarray}
+            Observed data for two groups, where a - control group,  b - test group.
+        alpha : float
+            Significance level.
+            
+Returns
+        -------
+        p_value : float
+            Two-sided p-value.
+        sign : bool
+            Rejected or not null hypotesis with given significance level.
+"""
+
+    def __init__(self, a, b, alpha=0.05):
         self.mu = b.mean() - a.mean()
         self.sigma = np.sqrt(a.std()**2 / len(a) + b.std()**2 / len(b))
         self.alpha = alpha
@@ -302,6 +323,20 @@ class ZTest(StatTest):
 
 
 class BTest(StatTest):
+    
+    """
+    Perform a test that the probability of success is p.
+    This is an exact, two-sided test of the null hypothesis that the probability of success in a Bernoulli experiment is p.
+    Parameters
+        ----------
+        a, b : {list, ndarray}
+            Observed data for two groups, where a - control group,  b - test group.
+        model_name : object
+            Model to fit the variables distribution.
+        random_size : integer
+            Number of random variates
+    """
+    
     def __init__(self, a, b, model_name, random_size=100000):
         self.diff = model_name(b).rvs(random_size) - model_name(a).rvs(random_size)
 
