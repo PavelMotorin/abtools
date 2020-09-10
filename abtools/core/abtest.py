@@ -284,22 +284,23 @@ class StudentTest(object):
 
 
 class ZTest(StatTest):
-"""
-Test for mean based on normal distribution, one or two samples.
-In the case of two samples, the samples are assumed to be independent.
-Parameters
-        ----------
-        a, b : {list, ndarray}
-            Observed data for two groups, where a - control group,  b - test group.
-        alpha : float
-            Significance level.
-            
-Returns
-        -------
-        p_value : float
-            Two-sided p-value.
-        sign : bool
-            Rejected or not null hypotesis with given significance level."""
+    """
+    Test for mean based on normal distribution, one or two samples.
+    In the case of two samples, the samples are assumed to be independent.
+    Parameters
+    ----------
+    a, b : {list, ndarray}
+        Observed data for two groups, where a - control group,  b - test group.
+    alpha : float
+        Significance level.
+
+    Returns
+    -------
+    p_value : float
+        Two-sided p-value.
+    sign : bool
+        Rejected or not null hypotesis with given significance level.
+    """
 
     def __init__(self, a, b, alpha=0.05):
         self.mu = b.mean() - a.mean()
