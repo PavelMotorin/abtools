@@ -17,10 +17,11 @@ __all__ = [
 
 
 class BernoulliModel(BaseModel):
+    
     """
-
-
+    Model to fit the bernoulli distribution of random variates.
     """
+    
     def __init__(self, x):
         self.alpha = x.sum() + 0.5
         self.beta = len(x) - self.alpha + 0.5
@@ -30,6 +31,11 @@ class BernoulliModel(BaseModel):
 
 
 class NormalModel(BaseModel):
+    
+    """
+    Model to fit the normal distribution of random variates.
+    """
+    
     def __init__(self, x):
         self.mu = x.mean()
         self.sigma = x.std() / np.sqrt(len(x))
@@ -39,6 +45,11 @@ class NormalModel(BaseModel):
 
 
 class LognormalModel(BaseModel):
+    
+    """
+    Model to fit the lognormal distribution of random variates.
+    """
+    
     def __init__(self, x):
         log_x = np.log(x)
         std = log_x.std()
@@ -61,6 +72,11 @@ class LognormalModel(BaseModel):
 
 
 class ARPUModel(BaseModel):
+     
+    """
+    Model to fit the combined lognormal and bernoulli distribution of random variates.
+    """
+    
     def __init__(self, x):
         self.conversion_model = BernoulliModel((x > 0) * 1)
         self.ARPPU_model = LognormalModel(x[x > 0])
